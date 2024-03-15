@@ -31,6 +31,7 @@ export {
   SalesRegisterPageDataLoader
 }
 
+// @DATALOADER: staticProducts, staticCustomers, staticLocations, staticInvoiceTypes
 async function SalesRegisterPageDataLoader() {
   const staticProducts = []
   const staticInvoiceTypes = []
@@ -70,11 +71,13 @@ async function SalesRegisterPageDataLoader() {
   }
 }
 
+// Used for generating a new invoice number
 const generateInvoiceNo = () => {
   const a = new Uint32Array(2)
   return crypto.getRandomValues(a).reduce((a, b) => a + b).toString() + a.at(0).toString().slice(0, 5)
 }
 
+// Used for resetting the sales form state to default 
 const defaultSale = {
   customer_id: '',
   sales_date: new Date(),
@@ -99,6 +102,7 @@ function SalesRegisterPage(props) {
   const {
     staticProducts,
     staticCustomers,
+    staticInvoiceTypes,
     staticLocations } = useLoaderData()
 
   const [selectedCustomer, setSelectedCustomer] = useState(null)
@@ -107,6 +111,7 @@ function SalesRegisterPage(props) {
   const [recalculate, setRecalculate] = useState(false)
   const [sales, setSales] = useState(structuredClone(defaultSale))
 
+  // Save the sales, order summary items (selections) to the database as PAID.
   const onSubmit = (ev) => {
     ev.preventDefault()
 
@@ -121,16 +126,19 @@ function SalesRegisterPage(props) {
       .catch()
   }
 
+  // @FEATURE: Save the sales, order summary items (selections) to the database as PENDING.
   const onSave = () => {
     sales.customer_id = selectedCustomer.id
     saveSalesToDatabase(sales)
-      .then(() => { })
+      .then(() => {})
       .catch()
   }
 
+  // Used for clearing the form after 
   const onDiscard = () => {
     const clonedDefaultSale = structuredClone(defaultSale)
 
+    // @FEATURE: Regenerates a new invoice number for the next order
     clonedDefaultSale.invoice_no = generateInvoiceNo()
 
     setSales(clonedDefaultSale)
@@ -138,6 +146,7 @@ function SalesRegisterPage(props) {
     formRef.current.reset()
   }
 
+  // Sales recalculator whenever changes are detected
   const recalculateSales = () => {
     const clone = structuredClone(sales)
 
@@ -155,17 +164,24 @@ function SalesRegisterPage(props) {
     setSales(clone)
   }
 
+  // Adds a product to the order summary items (used in OrderSummaryItem.jsx)
   const addProductToSelection = (product) => {
     const clone = structuredClone(sales)
+
+    // @NOTE: Instead of using the unit cost of a product, we'll revert to the price level 1.
+    const itemPriceLevels = [ ...product.itemPriceLevels ].sort((a, b) => a.priceLevel.level_name < a.priceLevel.level_name)
+
     clone.selections[product.id] = {
       item_index: clone.length,
       product: structuredClone(product),
       item_id: product.id,
       price_level_id: null,
       quantity: 1,
-      cost: product.item_cost,
-      price: product.item_cost,
+
+      cost: /** product.item_cost */ itemPriceLevels[0].priceLevel.price,
+      price: /** product.item_cost */ itemPriceLevels[0].priceLevel.price,
     }
+
 
     clone.length++
     setSales(clone)
@@ -183,6 +199,7 @@ function SalesRegisterPage(props) {
   // Sorts the items in the summary
   const sortFn = (a, b) => a.item_index < b.item_index
 
+  // @FEATURE: Check all required properties if populated before enabling the form
   const isValid = useMemo(() => {
     let valid = false
 
@@ -192,6 +209,7 @@ function SalesRegisterPage(props) {
     return valid
   }, [sales])
 
+  // @FEATURE: Update/recalculate the sales information whenever the selected customer or order summary items change
   useEffect(() => { recalculateSales() }, [recalculate, selectedCustomer])
 
   // @PAGE_URL: /
@@ -274,6 +292,36 @@ function SalesRegisterPage(props) {
                     </div>
                   </section>
               }
+
+              <ul className='d-none list-unstyled d-flex gap-2 px-0 mb-2'>
+                {
+                  staticInvoiceTypes.map(invoiceType => {
+                    const checkboxRef = createRef()
+
+                    const onChange = () => {
+                      const cloneSales = structuredClone(sales)
+                      cloneSales.invoice_type_id = invoiceType.id
+                      setSales(cloneSales)
+                    }
+
+                    return (
+                      <li key={invoiceType.code} className='col'>
+                        <div className='btn-group w-100' role='group' aria-label='Invoice type selector'>
+                          <input
+                            ref={checkboxRef}
+                            checked={sales.invoice_type_id == invoiceType.id}
+                            type='checkbox'
+                            className='btn-check'
+                            id={`invoiceType${invoiceType.code}`} autoComplete='off' onChange={onChange} />
+                          <label title={invoiceType.invoice_name} className='btn btn-outline-primary px-2' htmlFor={`invoiceType${invoiceType.code}`}>
+                            <span className='initialism text-capitalize fw-semibold'>{invoiceType.code}</span>
+                          </label>
+                        </div>
+                      </li>
+                    )
+                  })  
+                }
+              </ul>
 
               <div className='shadow-sm rounded py-3 mb-3 border bg-white'>
                 <div className='mb-4'>
@@ -369,7 +417,6 @@ function SalesRegisterPage(props) {
                   </dl>
                 </div>
 
-
                 <fieldset className=''>
                   <label htmlFor='' className='fs-6 fw-semibold mb-3 text-secondary'>Payment Method</label>
                   <div className='row'>
@@ -436,10 +483,10 @@ function SalesRegisterPage(props) {
                 :
                 <></>
             }
+
             <ContactSelector
               contacts={contacts}
               updateSelection={setSelectedCustomer}></ContactSelector>
-
           </section>
         </div>
       </div>

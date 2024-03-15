@@ -4,7 +4,7 @@ import {
   PlusIcon
 } from '@heroicons/react/outline'
 import { createPublicUrlForPath, pesoFormatter } from '../actions'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 export { OrderSummaryItem }
 
@@ -17,7 +17,9 @@ function OrderSummaryItem(props) {
   const deselectProductFromSelection = props.deselectProductFromSelection
   const selectedCustomer = props.selectedCustomer
   const selectedCustomerPriceLevel = selectedCustomer?.price_level
-  const itemPriceLevels = [ ...productData.itemPriceLevels ].reverse()
+
+  // @NOTE: Instead of using the unit cost of a product, we'll revert to the price level 1.
+  const itemPriceLevels = [ ...productData.itemPriceLevels ].sort((a, b) => a.priceLevel.level_name < a.priceLevel.level_name)
   const selectedPriceLevel = itemPriceLevels[selectedCustomerPriceLevel-1]
 
   const checkValue = () => {
@@ -56,7 +58,7 @@ function OrderSummaryItem(props) {
   const updateSelectionValues = () => {
     const clone = structuredClone(sales)
 
-    let selectionPrice = selection.product.item_cost
+    let selectionPrice = /** selection.product.item_cost */ itemPriceLevels[0].priceLevel.price
 
     if (!selectedPriceLevel) {
       selection.price_level_id = null
@@ -135,18 +137,19 @@ function OrderSummaryItem(props) {
           </ul>
 
           {
-            itemPriceLevels?.length && selectedCustomerPriceLevel && selectedPriceLevel?.priceLevel?.price ?
-              <button type='button' className='btn btn-outline-primary bg-white text-primary btn-sm' onClick={() => onClickUsePriceLevel()}>
-                {
-                  selection.price_level_id != null ?
-                    `Revert`  
-                    :
-                    `Use Price Lvl. ${selectedCustomerPriceLevel}`
-                }
-              </button>
-              :
-              <></>
+          itemPriceLevels?.length && selectedCustomerPriceLevel && selectedPriceLevel?.priceLevel?.price && selectedCustomerPriceLevel != 1 ?
+            <button type='button' className='btn btn-outline-primary bg-white text-primary btn-sm' onClick={() => onClickUsePriceLevel()}>
+              {
+                selection.price_level_id != null ?
+                  `Revert`  
+                  :
+                  `Use Price Lvl. ${selectedCustomerPriceLevel}`
+              }
+            </button>
+            :
+            <></>
           }
+
         </div>
         <div className='d-flex flex-column justify-content-between align-items-end'>
           <div className=''>

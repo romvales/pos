@@ -14,6 +14,8 @@ function ProductListing(props) {
   const onClickAddItemToOrderSummary = (product) => {
     const productId = product.id
 
+    if (product.item_quantity == 0) return
+
     if (sales.selections[productId]) {
       deselectProductFromSelection(productId)
     } else {
@@ -23,7 +25,6 @@ function ProductListing(props) {
 
   const filterFunc = (product) => {
     const patt = new RegExp(searchQuery)
-
     return patt.test(product.code) || patt.test(product.item_name)
   }
 
@@ -39,23 +40,17 @@ function ProductListing(props) {
         <ul className='list-unstyled row pb-0'>
           {
             products.filter(filterFunc).map((product, i) => {
-              const uriEncodedProductName = encodeURIComponent(product.item_name)
               const placeholderUrl = 'https://placehold.co/200?text=' + product.item_name
               let itemImageUrl = placeholderUrl
+
+               // @NOTE: Instead of using the unit cost of a product, we'll revert to the price level 1.
+              const itemPriceLevels = [ ...product.itemPriceLevels ].sort((a, b) => a.priceLevel.level_name < a.priceLevel.level_name)  
 
               if (product.item_image_url) {
                 itemImageUrl = createPublicUrlForPath(product.item_image_url, { width: 200, height: 200 })
               }
 
-              const ProductLink = (props) => (
-                <Link
-                  style={{ textDecoration: 'none' }}
-                  to={{ pathname: `/products/${product.id}/${uriEncodedProductName}` }}
-                  target='_blank'>
-                  {props.children}
-                </Link>
-              )
-
+              // Puts a border to a selected product in the product list
               const productHighlighted = sales.selections[product.id] != null ? 'border-primary border-2 border-opacity-75' : ''
 
               return (
@@ -67,7 +62,7 @@ function ProductListing(props) {
                     </picture>
                     <div className='px-3 py-2'>
                       <h3 title={product.item_name} className='p-0 m-0 mb-2' style={{ fontWeight: 600, fontSize: '1.05rem' }}>
-                        {pesoFormatter.format(product.item_cost)}
+                        {pesoFormatter.format(itemPriceLevels[0].priceLevel.price)} <span style={{ fontSize: '0.9rem' }} className='text-secondary fw-normal'>({pesoFormatter.format  (product.item_cost)})</span>
                       </h3>
                       <h3 title={product.item_name} style={{ fontSize: '0.95rem' }} className='p-0 m-0 text-secondary fw-semibold'>
                         {product.item_name}

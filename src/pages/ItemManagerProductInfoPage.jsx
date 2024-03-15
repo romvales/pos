@@ -1,7 +1,7 @@
-import { useLoaderData } from 'react-router-dom'
+import { useLoaderData, useNavigate } from 'react-router-dom'
 import { DefaultLayout } from '../layouts/DefaultLayout'
 import { XIcon } from '@heroicons/react/outline'
-import { createPublicUrlForPath, getDealerName, getProductByIdAndProductNameFromDatabase, saveProductToDatabase, uploadFileToServer } from '../actions'
+import { createPublicUrlForPath, deleteProduct, getDealerName, getProductByIdAndProductNameFromDatabase, saveProductToDatabase, uploadFileToServer } from '../actions'
 import { createRef, useEffect, useState } from 'react'
 import { ItemManagerPageDataLoader } from './ItemManagerPage'
 import { upperFirst } from 'lodash'
@@ -56,13 +56,14 @@ function ItemManagerProductInfoPage(props) {
   const { staticProduct, staticDealers, staticCategories } = useLoaderData()
 
   const fileRef = createRef()
+  const navigate = useNavigate()
   const [product] = useState(staticProduct)
   const [categories, setCategories] = useState(staticCategories)
   const placeholderUrl = `https://placehold.co/300?text=${product.item_name}`
   const [itemImageUrl, setItemImageUrl] = useState(placeholderUrl)
   const [productName, setProductName] = useState(product.item_name)
   const [generatedUnitCode, setGeneratedUnitCode] = useState(product.code)
-  const [priceLevels, setPriceLevels] = useState(cleanItemPriceLevels(product.itemPriceLevels))
+  const [priceLevels, setPriceLevels] = useState([ ...cleanItemPriceLevels(product.itemPriceLevels) ].reverse())
   const mapStaticDealersByDealerName = {}
 
   for (const dealer of staticDealers) {
@@ -107,9 +108,18 @@ function ItemManagerProductInfoPage(props) {
     setItemImageUrl(URL.createObjectURL(itemImage))
   }
 
+  // @FEATURE: Delete a product and navigate back to /products
+  const onDeleteProduct = () => {
+    deleteProduct(product)
+      .then(() => {
+        navigate({ pathname: '/products' })
+      })
+  }
+
+  // 
   const addPriceLevel = () => {
     const clone = structuredClone(priceLevels)
-    priceLevels.push({
+    priceLevels.unshift({
       priceLevels: {
         level_name: encodeURIComponent(product.item_name) + `_price_level_${priceLevels.length + 1}`,
         code: crypto.getRandomValues(new Uint32Array(2)).reduce((a, b) => a + b),
@@ -125,7 +135,7 @@ function ItemManagerProductInfoPage(props) {
   useEffect(() => {
     if (product.item_image_url.length) setItemImageUrl(createPublicUrlForPath(product.item_image_url, { width: 300, height: 300 }))
 
-    // Add default price levels
+    // When the price levels of a product is empty, add default price levels
     for (let i = 0; i <= 5; i++) {
       if (priceLevels.length > 5) break
       addPriceLevel()
@@ -262,8 +272,11 @@ function ItemManagerProductInfoPage(props) {
               </div>
             </div>
 
-            <div className='d-flex justify-content-start'>
+            <div className='d-flex justify-content-start gap-2'>
               <input type='submit' className='btn btn-primary btn-sm fs- p-3' value='Save Product' />
+              <button type='button' className='btn btn-outline-secondary btn-sm fs- p-3' onClick={onDeleteProduct}>
+                Delete Button
+              </button>
             </div>
           </div>
 

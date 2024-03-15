@@ -25,6 +25,7 @@ export {
   ContactManagerPage
 }
 
+// @DATALOADER
 async function ContactManagerPageDataLoader() {
   const staticLocations = []
   const staticContacts = {
@@ -57,6 +58,7 @@ function ContactManagerPage(props) {
   const [contacts, setContacts] = useState(staticContacts)
   const [searchQuery, setSearchQuery] = useState('')
 
+  // Used for refreshing the list of locations
   const refreshLocations = async () => {
     return getLocationsFromDatabase()
       .then(res => {
@@ -66,6 +68,7 @@ function ContactManagerPage(props) {
       .catch()
   }
 
+  // @FEATURE: Add location to the database
   const onSubmitAddLocation = (ev) => {
     ev.preventDefault()
 
@@ -82,6 +85,7 @@ function ContactManagerPage(props) {
     }
   }
 
+  // @FEATURE: Deletes a location in the database
   const onClickDeleteLocation = (locationData) => {
     deleteLocation(locationData)
       .then(() => {

@@ -1,8 +1,9 @@
 import { Link, useLoaderData } from 'react-router-dom'
-import { deleteSales, getFullName, getSalesFromDatabase, pesoFormatter } from '../actions'
-import { PencilAltIcon, TrashIcon } from '@heroicons/react/outline'
+import { useEffect } from 'react'
+import { deleteSales, getFullName, getSalesFromDatabase, pesoFormatter, saveSalesToDatabase } from '../actions'
+import { TrashIcon, ReceiptRefundIcon, CashIcon } from '@heroicons/react/outline'
 import { DefaultLayout } from '../layouts/DefaultLayout'
-import { capitalize } from 'lodash'
+import { capitalize, uniqBy } from 'lodash'
 import { useState } from 'react'
 
 export {
@@ -10,21 +11,23 @@ export {
   SalesManagerPageDataLoader
 }
 
+// @DATALOADER: staticSales
 async function SalesManagerPageDataLoader() {
   const staticSales = []
 
+  // Explanation: Gets all sales from the database along with other related data (sales, order summary items, customer)
   await getSalesFromDatabase(`
     *,
     customer:customer_id ( id, contact_type, first_name, last_name, middle_initial ),
     selections (
       *,
-      item:item_id (*)
+      product:item_id (*)
     )
   `)
     .then(res => {
       const { data } = res
 
-      staticSales.push(...data)
+      staticSales.push(...(data ?? []))
     })
 
   return {
@@ -36,7 +39,9 @@ function SalesManagerPage(props) {
   const { staticSales } = useLoaderData()
 
   const [sales, setSales] = useState(staticSales)
+  const [searchQuery, setSearchQuery] = useState('')
 
+  // @FEATURE: Deletes a sale from the database
   const onDeleteTransaction = (sale) => {
     deleteSales(sale)
       .then(
@@ -47,6 +52,38 @@ function SalesManagerPage(props) {
       )
   }
 
+  // @FEATURE: Change the status of a sale to PAID
+  const onClickPaid = (sale) => {
+    const cloneSale = structuredClone(sale)
+
+    cloneSale.sales_status = 'paid'
+
+    saveSalesToDatabase(cloneSale)
+      .then(async () => {
+        const { staticSales } = await SalesManagerPageDataLoader()
+        setSales(staticSales)
+      })
+  }
+
+  // @FEATURE: Change the status of a sale to REFUNDED
+  const onClickRefund = (sale) => {
+    const cloneSale = structuredClone(sale)
+    
+    cloneSale.sales_status = 'refunded'
+
+    saveSalesToDatabase(cloneSale)
+      .then(async () => {
+        const { staticSales } = await SalesManagerPageDataLoader()
+        setSales(staticSales)
+      })
+  }
+
+  const filterFunc = (sale) => {
+    const patt = new RegExp(searchQuery)
+
+    return patt.test(sale.invoice_no) || (sale.customer && patt.test(getFullName(sale.customer)))
+  }
+
   // @PAGE_URL: /sales
   return (
     <DefaultLayout>
@@ -54,6 +91,12 @@ function SalesManagerPage(props) {
         <div className='row'>
           <section className='col-xl-7 col-md-7'>
             <h1 className='fs-3 fw-semibold mb-4'>Recent transactions</h1>
+
+            <nav className='mb-3 row'>
+              <form>
+                <input value={searchQuery} className='form-control' placeholder='Search for a transaction...' onChange={ev => setSearchQuery(ev.target.value)} />
+              </form>
+            </nav>
 
             <table className='table table-sm'>
               <thead>
@@ -77,10 +120,10 @@ function SalesManagerPage(props) {
                     <span className='d-none'>Actions</span>
                   </th>
                 </tr>
-              </thead>  
+              </thead>
               <tbody style={{ fontSize: '0.9rem' }}>
                 {
-                  sales.map(sale => {
+                  uniqBy(sales.filter(filterFunc), 'invoice_no').map(sale => {
                     const fullName = sale.customer ? getFullName(sale.customer) : 'Unknown'
 
                     const ProfileRef = (
@@ -108,12 +151,12 @@ function SalesManagerPage(props) {
                                 {ProfileRef}
                               </Link>
                               :
-                              ProfileRef
+                              ProfileRef  
                           }
                         </td>
                         <td className='align-middle'>
                           <time dateTime={sale.sales_date}>
-                            {new Date(sale.sales_date).toLocaleDateString('en', { month: '2-digit', day: '2-digit', year: 'numeric', hour12: true, hour: '2-digit', minute: '2-digit' })}
+                            {new Date(sale.sales_date).toLocaleDateString('en', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                           </time>
                         </td>
                         <td className='align-middle'>
@@ -122,12 +165,12 @@ function SalesManagerPage(props) {
                               const status = capitalize(sale.sales_status)
 
                               switch (sale.sales_status) {
-                              case 'in-progress':
-                                return <span className='badge text-bg-secondary bg-opacity-75 p-2 text-uppercase'>Pending</span>
-                              case 'refund':
-                                return <span className='badge text-bg-danger bg-opacity-75 p-2'>{status}</span>
-                              case 'paid':
-                                return <span className='badge text-bg-success bg-opacity-75 p-2 text-uppercase'>{status}</span>
+                                case 'in-progress':
+                                  return <span className='badge text-bg-secondary bg-opacity-75 p-2 text-uppercase'>PENDING</span>
+                                case 'refunded':
+                                  return <span className='badge text-bg-danger bg-opacity-75 p-2'>REFUND</span>
+                                case 'paid':
+                                  return <span className='badge text-bg-success bg-opacity-75 p-2 text-uppercase'>PAID</span>
                               }
                             })()
                           }
@@ -141,7 +184,7 @@ function SalesManagerPage(props) {
                               {
                                 sale.selections.length == 1 ?
                                   <>
-                                    {sale.selections.at(0).item.item_name.slice(0, 13) + '...'}
+                                    {sale.selections.at(0).product?.item_name.slice(0, 13) + '...'}
                                   </>
                                   :
                                   <>{sale.selections.length} items</>
@@ -151,9 +194,16 @@ function SalesManagerPage(props) {
                         </td>
                         <td className='align-middle'>
                           <div className='d-flex gap-1'>
-                            <button type={'button'} style={{ border: 0 }} className='btn p-0 text-secondary'>
-                              <PencilAltIcon width={18} />
-                            </button>
+                            <span className='d-inline-block' tabIndex='0' data-toggle='tooltip' title='Paid'>
+                              <button type={'button'} style={{ border: 0 }} className='btn p-0 text-secondary' onClick={() => onClickPaid(sale)}>
+                                <CashIcon width={18} />
+                              </button>
+                            </span>
+                            <span className='d-inline-block' tabIndex='0' data-toggle='tooltip' title={`Refund ${sale.invoice_no}`}>
+                              <button type={'button'} style={{ border: 0 }} className='btn p-0 text-secondary' onClick={() => onClickRefund(sale)}>
+                                <ReceiptRefundIcon width={18} />
+                              </button>
+                            </span>
                             <button type={'button'} style={{ border: 0 }} className='btn p-0 text-secondary' onClick={() => onDeleteTransaction(sale)}>
                               <TrashIcon width={18} />
                             </button>

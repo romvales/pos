@@ -13,6 +13,7 @@ export {
   ItemManagerPageDataLoader
 }
 
+// @DATALOADER: staticCategories, staticDealers, staticProducts
 async function ItemManagerPageDataLoader() {
   const staticCategories = []
   const staticDealers = (await getDealers()) ?? []
@@ -71,6 +72,7 @@ function ItemManagerPage(props) {
               </li>
             </ul>
           </nav>
+          
           {activeTabView == 'all' ? <AllProducts products={products} /> : <MostPopular />}
         </section>
         <section className='col-xl-3 col-5'>

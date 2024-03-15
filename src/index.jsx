@@ -8,6 +8,7 @@ import 'bootstrap'
 
 document.addEventListener('DOMContentLoaded', () => {
   const root = document.querySelector('#app')
+
   createRoot(root).render(
     <React.StrictMode>
       <App />

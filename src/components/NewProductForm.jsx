@@ -21,7 +21,7 @@ function NewProductForm(props) {
   for (const dealer of staticDealers) {
     mapStaticDealersByDealerName[getDealerName(dealer)] = dealer
   }
-
+  
   const onSubmit = async (ev) => {
     ev.preventDefault()
 

@@ -1,17 +1,29 @@
-import { Link, useLoaderData } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { createPublicUrlForPath, pesoFormatter } from '../actions'
+import { useState } from 'react'
 
 export { AllProducts }
 
 function AllProducts(props) {
   const products = props.products
+  
+  const [searchQuery, setSearchQuery] = useState('')
+  const filterFunc = (product) => {
+    const patt = new RegExp(searchQuery)
+    return patt.test(product.code) || patt.test(product.item_name)
+  }
 
   return (
     <div className='container'>
-      <form></form>
+      <nav className='mb-3 row'>
+        <form>
+          <input value={searchQuery} className='form-control' placeholder='Search for a product...' onChange={ev => setSearchQuery(ev.target.value)} />
+        </form>
+      </nav>
+
       <ul className='d-flex flex-wrap list-unstyled pb-0'>
         {
-          products.map((product, i) => {
+          products.filter(filterFunc).map((product, i) => {
             const uriEncodedProductName = encodeURIComponent(product.item_name)
             let itemImageUrl = 'https://placehold.co/300?text=' + product.item_name
 

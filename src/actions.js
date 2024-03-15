@@ -27,6 +27,7 @@ export {
   deleteLocation,
   deleteContact,
   deleteProductCategory,
+  deleteProduct,
   deleteSales,
 
   uploadFileToServer,
@@ -65,7 +66,7 @@ async function getContactsFromDatabase(contactType) {
 }
 
 async function getContactByIdFromDatabase(id) {
-  return DefaultClient.from('contacts').select().match({ id })
+  return DefaultClient.from('contacts').select().single().match({ id })
 }
 
 async function getProductCategoriesFromDatabase() {
@@ -104,6 +105,12 @@ async function deleteProductCategory(categoryData) {
     .eq('id', categoryData.id)
 }
 
+async function deleteProduct(product) {
+  return DefaultClient.from('items')
+    .delete({ count: 1 })
+    .eq('id', product.id)
+}
+
 async function deleteSales(salesData) {
   return DefaultClient.from('sales')
     .delete({ count: 1 })
@@ -131,6 +138,7 @@ async function saveSalesToDatabase(sales) {
   const clonedSales = structuredClone(sales)
 
   // Delete all fields not related to the sales schema.
+  delete clonedSales.customer
   delete clonedSales.selections
   delete clonedSales.length
 
@@ -156,6 +164,7 @@ async function saveSalesToDatabase(sales) {
             // Delete unrelated fields
             delete product.category
             delete product.dealer
+            delete product.itemPriceLevels  
             
             toPerform.push(saveProductToDatabase(product))
           }
@@ -163,16 +172,16 @@ async function saveSalesToDatabase(sales) {
           // Delete unrelated fields
           delete toSave.product
           delete toSave.item_index
+          delete toSave.item
 
           toPerform.push(
-            DefaultClient.from('selections')
-              .upsert(toSave, { onConflict: 'id' })
+            DefaultClient.from('selections').upsert(toSave, { onConflict: 'id' })
           )
         }
         
       }
-      
-      return Promise.all(toPerform)
+
+      await Promise.all(toPerform)
     })
     .catch()
 }
@@ -209,15 +218,13 @@ async function saveProductToDatabase(productData) {
           )
         }
       }
+
+      await Promise.all(toPerform)
     })
 }
 
 async function saveProductCategoryToDatabase(categoryData) {
   return DefaultClient.from('item_types').upsert(categoryData, { onConflict: 'id' })
-}
-
-async function saveItemSelectionToDatabase(selectionData) {
-  return DefaultClient.from('selections').upsert(selectionData, { onConflict: 'id' })
 }
 
 function getProductByIdAndProductNameFromDatabase(id, item_name) {
@@ -239,10 +246,11 @@ async function getProductsFromDatabase() {
     itemPriceLevels:items_price_levels(
       price_level_id,
       priceLevel:price_level_id(
+        level_name,
         price
       ) 
     )
-  `).order('item_quantity', { ascending: false })
+  `)
 }
 
 async function getCustomers() {
