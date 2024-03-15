@@ -1,23 +1,43 @@
 
 import { createBrowserRouter } from 'react-router-dom'
-import { SalesRegisterPage } from './SalesRegisterPage'
-import { CustomerManagerPage } from './CustomerManagerPage'
-import { ItemManagerPage } from './ItemManagerPage'
-import { SalesManagerPage } from './SalesManagerPage'
+import { SalesRegisterPage, SalesRegisterPageDataLoader } from './SalesRegisterPage'
+import { ContactManagerPage, ContactManagerPageDataLoader } from './ContactManagerPage'
+import { ItemManagerPageDataLoader, ItemManagerPage } from './ItemManagerPage'
+import { SalesManagerPage, SalesManagerPageDataLoader } from './SalesManagerPage'
+import { ItemManagerProductInfoPage, ItemManagerProductInfoPageDataLoader } from './ItemManagerProductInfoPage'
+import { ContactInfoManagerPage, ContactInfoManagerPageDataLoader } from './ContactInfoManagerPage'
 
 export { router as PageRouter }
 
 const router = createBrowserRouter([
   {
-    path: '/', Component: SalesRegisterPage,
+    path: '/', 
+    Component: SalesRegisterPage,
+    loader: SalesRegisterPageDataLoader,
   },
   {
-    path: '/manage/sales', Component: SalesManagerPage,
+    path: '/sales', 
+    Component: SalesManagerPage,
+    loader: SalesManagerPageDataLoader,
   },
   {
-    path: '/manage/customers', Component: CustomerManagerPage,
+    path: '/contacts', 
+    Component: ContactManagerPage,
+    loader: ContactManagerPageDataLoader,
   },
   {
-    path: '/manage/items', Component: ItemManagerPage,
+    path: '/contacts/:id',
+    Component: ContactInfoManagerPage,
+    loader: ContactInfoManagerPageDataLoader,
+  },
+  {
+    path: '/products', 
+    Component: ItemManagerPage,
+    loader: ItemManagerPageDataLoader,
+  },
+  {
+    path: '/products/:id/:product_name',
+    Component: ItemManagerProductInfoPage,
+    loader: ItemManagerProductInfoPageDataLoader,
   }
 ])
