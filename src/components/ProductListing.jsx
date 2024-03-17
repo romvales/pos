@@ -45,7 +45,7 @@ function ProductListing(props) {
               let itemImageUrl = placeholderUrl
 
                // @NOTE: Instead of using the unit cost of a product, we'll revert to the price level 1.
-              const itemPriceLevels = [ ...product.itemPriceLevels ].sort((a, b) => a.priceLevel.level_name < a.priceLevel.level_name)  
+              const itemPriceLevels = [ ...product.itemPriceLevels ].sort((a, b) => a.priceLevel.level_name > b.priceLevel.level_name)
 
               if (product.item_image_url) {
                 itemImageUrl = createPublicUrlForPath(product.item_image_url)
@@ -63,7 +63,7 @@ function ProductListing(props) {
                     </picture>
                     <div className='px-3 py-2'>
                       <h3 title={product.item_name} className='p-0 m-0 mb-2' style={{ fontWeight: 600, fontSize: '1.05rem' }}>
-                        {pesoFormatter.format(itemPriceLevels[0].priceLevel.price)} <span style={{ fontSize: '0.9rem' }} className='text-secondary fw-normal'>({pesoFormatter.format  (product.item_cost)})</span>
+                        {pesoFormatter.format(itemPriceLevels.at(0).priceLevel.price)} <span style={{ fontSize: '0.9rem' }} className='text-secondary fw-normal'>({pesoFormatter.format  (product.item_cost)})</span>
                       </h3>
                       <h3 title={product.item_name} style={{ fontSize: '0.95rem' }} className='p-0 m-0 text-secondary fw-semibold'>
                         {product.item_name}

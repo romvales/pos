@@ -39,6 +39,8 @@ function AllProducts(props) {
               </Link>
             )
 
+            const itemPriceLevels = [...product.itemPriceLevels].sort((a, b) => a.priceLevel.level_name < a.priceLevel.level_name)
+
             return (
               <li className='col-sm-12 col-xl-4 mb-2' key={i}>
                 <div className='d-flex shadow-sm border rounded h-100 m-1'>
@@ -77,7 +79,7 @@ function AllProducts(props) {
                           Price
                         </dt>
                         <dd className='mb-0 text-secondary'>
-                          <p className='mb-0' style={{ fontSize: '0.8rem' }}>{pesoFormatter.format(product.item_cost)} ({product.item_quantity} available)</p>
+                          <p className='mb-0' style={{ fontSize: '0.8rem' }}>{pesoFormatter.format(itemPriceLevels.at(0).priceLevel.price)} ({product.item_quantity} available)</p>
                         </dd>
                       </div>
                     </dl>

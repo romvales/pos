@@ -45,7 +45,7 @@ export const addProductToSelection = (product, salesState) => {
   const clone = structuredClone(sales)
 
   // @NOTE: Instead of using the unit cost of a product, we'll revert to the price level 1.
-  const itemPriceLevels = [...product.itemPriceLevels].sort((a, b) => a.priceLevel.level_name < a.priceLevel.level_name)
+  const itemPriceLevels = [...product.itemPriceLevels].sort((a, b) => a.priceLevel.level_name > b.priceLevel.level_name)
 
   clone.selections[product.id] = {
     item_index: clone.length,

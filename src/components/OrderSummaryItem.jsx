@@ -31,7 +31,7 @@ function OrderSummaryItem(props) {
   const selectedCustomerPriceLevel = selectedCustomer?.price_level
 
   // @NOTE: Instead of using the unit cost of a product, we'll revert to the price level 1.
-  const itemPriceLevels = [ ...productData.itemPriceLevels ].sort((a, b) => a.priceLevel.level_name < a.priceLevel.level_name)
+  const itemPriceLevels = [ ...productData.itemPriceLevels ].sort((a, b) => a.priceLevel.level_name > b.priceLevel.level_name)
   const selectedPriceLevel = itemPriceLevels[selectedCustomerPriceLevel-1]
 
   const checkValue = () => {
