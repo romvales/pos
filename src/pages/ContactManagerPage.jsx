@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { DefaultLayout } from '../layouts/DefaultLayout'
 
 import { PlusIcon, TrashIcon } from '@heroicons/react/outline'
@@ -9,8 +9,6 @@ import {
   deleteLocation,
 
   getLocationsFromDatabase,
-  getContacts,
-
   saveLocationToDatabase,
   getCustomers,
   getStaffs,
@@ -21,32 +19,7 @@ import { useLoaderData } from 'react-router-dom'
 
 
 export {
-  ContactManagerPageDataLoader,
-  ContactManagerPage
-}
-
-// @DATALOADER
-async function ContactManagerPageDataLoader() {
-  const staticLocations = []
-  const staticContacts = {
-    staffs: [],
-    customers: [],
-    dealers: [],
-  }
-
-  await getLocationsFromDatabase()
-    .then(res => {
-      const { data } = res
-      staticLocations.push(...data)
-    })
-    .catch()
-
-  await getContacts(staticContacts)
-
-  return {
-    staticLocations,
-    staticContacts,
-  }
+  ContactManagerPage,
 }
 
 function ContactManagerPage(props) {
@@ -179,13 +152,13 @@ function ContactManagerPage(props) {
             </section>
           </div>
           <div className='col-3'>
-            <h1 className='fs-3 fw-semibold mb-4'>Manage locations</h1>
+            <h1 className='fs-3 fw-semibold mb-4'>Manage stores</h1>
 
             <form className='d-flex gap-2' onSubmit={onSubmitAddLocation}>
               <div className='mb-2 flex-grow-1'>
                 <input
                   name='location_name'
-                  placeholder='Location name'
+                  placeholder='Location'
                   className='form-control shadow-none'
                   id='locationInput'
                   required />

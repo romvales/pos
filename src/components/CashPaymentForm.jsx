@@ -35,7 +35,8 @@ function CashPaymentForm(props) {
             <input 
               onChange={onChange}
               type='number' 
-              name='amount_paid' 
+              name='amount_paid'
+              defaultValue={sales.amount_paid}
               className='remedyArrow form-control shadow-none' 
               id='amountPaid' required />
             <label htmlFor='amountPaid' className='form-label fs-6'>* Amount</label>

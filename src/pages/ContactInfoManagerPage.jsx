@@ -1,39 +1,22 @@
 import { useLoaderData } from 'react-router-dom'
-import { getContactByIdFromDatabase, saveContactToDatabase } from '../actions'
+import { saveContactToDatabase } from '../actions'
 import { DefaultLayout } from '../layouts/DefaultLayout'
 import { createRef, useState } from 'react'
 import { capitalize } from 'lodash'
 
 export {
   ContactInfoManagerPage,
-  ContactInfoManagerPageDataLoader
-}
-
-// @DATALOADER: staticContact
-async function ContactInfoManagerPageDataLoader({ params }) {
-  const id = atob(params.id)
-  let staticContact = {}
-
-  await getContactByIdFromDatabase(id)
-    .then(res => {
-      const { data } = res
-      staticContact = { ...data }
-    })
-
-  return {
-    staticContact,
-  }
 }
 
 const contactTypes = ['customer', 'staff', 'dealer']
 const civilStatuses = ['unknown', 'single', 'divorced', 'widow', 'married']
 
 function ContactInfoManagerPage(props) {
-  const { staticContact } = useLoaderData()
+  const { staticContact, staticLocations } = useLoaderData()
 
   const formRef = createRef()
   const isReadOnlyCustomerType = props.isReadOnlyCustomerType
-  const locations = props.locations ?? []
+  const [locations] = useState(staticLocations)
   const [existingContact, setExistingContact] = useState(staticContact)
 
   const onSubmit = (ev) => {
@@ -98,7 +81,7 @@ function ContactInfoManagerPage(props) {
                         ))
                       }
                     </select>
-                    <label htmlFor='areaLocated' className='form-label fs-6'>Location</label>
+                    <label htmlFor='areaLocated' className='form-label fs-6'>Store</label>
                   </div>
                 </div>
                 <div className='col'>

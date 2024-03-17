@@ -4,18 +4,30 @@ import {
   PlusIcon
 } from '@heroicons/react/outline'
 import { createPublicUrlForPath, pesoFormatter } from '../actions'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { deselectProductFromSelection } from './InvoiceForm'
 
 export { OrderSummaryItem }
 
 function OrderSummaryItem(props) {
   const productData = props.productData
-  const sales = props.sales
-  const selection = sales.selections[productData.id]
-  const setSales = props.setSales
+
+  if (!productData) {
+    return (
+      <li>
+        <div className='d-flex gap-3 border rounded p-3 text-secondary'>
+          The product was deleted...
+        </div>
+      </li>
+    )
+  }
+
+  const [sales, setSales] = props.salesState
   const [recalculate, setRecalculate] = props.recalculator
-  const deselectProductFromSelection = props.deselectProductFromSelection
+
+  const selection = sales.selections[productData.id]
   const selectedCustomer = props.selectedCustomer
+  const persistPriceLevel = props.persistPriceLevel ?? false
   const selectedCustomerPriceLevel = selectedCustomer?.price_level
 
   // @NOTE: Instead of using the unit cost of a product, we'll revert to the price level 1.
@@ -24,7 +36,8 @@ function OrderSummaryItem(props) {
 
   const checkValue = () => {
     if (selection.quantity == 0) {
-      deselectProductFromSelection(productData.id)
+      deselectProductFromSelection(productData.id, props.salesState)
+      setRecalculate(!recalculate)
       return 0
     } else if (productData.item_quantity-selection.quantity < 0) {
       selection.quantity = productData.item_quantity
@@ -87,7 +100,11 @@ function OrderSummaryItem(props) {
   if (productData.item_image_url.length) 
     itemImageUrl = createPublicUrlForPath(productData.item_image_url, { width: 32, height: 32 })
 
-  useEffect(() => { updateSelectionValues() }, [ selectedCustomer ])
+  useEffect(() => { 
+    updateSelectionValues()
+    
+    if (persistPriceLevel) selection.price_level_id = null
+  }, [ selectedCustomer ])
 
   return (
     <li>
@@ -135,7 +152,6 @@ function OrderSummaryItem(props) {
               </div>
             </li>
           </ul>
-
           {
           itemPriceLevels?.length && selectedCustomerPriceLevel && selectedPriceLevel?.priceLevel?.price && selectedCustomerPriceLevel != 1 ?
             <button type='button' className='btn btn-outline-primary bg-white text-primary btn-sm' onClick={() => onClickUsePriceLevel()}>
@@ -143,7 +159,7 @@ function OrderSummaryItem(props) {
                 selection.price_level_id != null ?
                   `Revert`  
                   :
-                  `Use Price Lvl. ${selectedCustomerPriceLevel}`
+                  `Use ${pesoFormatter.format(selectedPriceLevel?.priceLevel?.price)} (Lvl. ${selectedCustomerPriceLevel})`
               }
             </button>
             :

@@ -142,6 +142,11 @@ async function saveSalesToDatabase(sales) {
   delete clonedSales.selections
   delete clonedSales.length
 
+  // Just delete the sales from the database if its total is zero
+  if (clonedSales.total_due == 0) {
+    return deleteSales(clonedSales).catch()
+  }
+
   return DefaultClient.from('sales').upsert(clonedSales, { onConflict: 'id' }).select()
     .then(async res => {
       const { data } = res
@@ -153,7 +158,7 @@ async function saveSalesToDatabase(sales) {
         // Save selected items (if any) to the database.
         for (const selection of Object.values(sales.selections)) {
           const toSave = structuredClone(selection)
-          const product = toSave.product
+          const product = toSave.product ?? {}
           toSave.sales_id = savedSales.id
 
           // @FEATURE: When sale is already paid, make sure that the product quantities are updated.
@@ -161,10 +166,12 @@ async function saveSalesToDatabase(sales) {
             product.item_sold += toSave.quantity
             product.item_quantity -= toSave.quantity
 
+            if (!product.id) continue
+
             // Delete unrelated fields
             delete product.category
             delete product.dealer
-            delete product.itemPriceLevels  
+            delete product.itemPriceLevels
             
             toPerform.push(saveProductToDatabase(product))
           }

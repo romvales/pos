@@ -1,43 +1,46 @@
 
 import { createBrowserRouter } from 'react-router-dom'
-import { SalesRegisterPage, SalesRegisterPageDataLoader } from './SalesRegisterPage'
-import { ContactManagerPage, ContactManagerPageDataLoader } from './ContactManagerPage'
-import { ItemManagerPageDataLoader, ItemManagerPage } from './ItemManagerPage'
-import { SalesManagerPage, SalesManagerPageDataLoader } from './SalesManagerPage'
-import { ItemManagerProductInfoPage, ItemManagerProductInfoPageDataLoader } from './ItemManagerProductInfoPage'
-import { ContactInfoManagerPage, ContactInfoManagerPageDataLoader } from './ContactInfoManagerPage'
+
+import {
+  SalesRegisterPageDataLoader,
+  ContactManagerPageDataLoader,
+  ItemManagerPageDataLoader,
+  SalesManagerPageDataLoader,
+  ItemManagerProductInfoPageDataLoader,
+  ContactInfoManagerPageDataLoader
+} from './loaders'
 
 export { router as PageRouter }
 
 const router = createBrowserRouter([
   {
     path: '/', 
-    Component: SalesRegisterPage,
+    lazy: () => import('./SalesRegisterPage').then(val => ({ Component: val.SalesRegisterPage })),
     loader: SalesRegisterPageDataLoader,
   },
   {
     path: '/sales', 
-    Component: SalesManagerPage,
+    lazy: () => import('./SalesManagerPage').then(val => ({ Component: val.SalesManagerPage })),
     loader: SalesManagerPageDataLoader,
   },
   {
     path: '/contacts', 
-    Component: ContactManagerPage,
+    lazy: () => import('./ContactManagerPage').then(val => ({ Component: val.ContactManagerPage })),
     loader: ContactManagerPageDataLoader,
   },
   {
     path: '/contacts/:id',
-    Component: ContactInfoManagerPage,
+    lazy: () => import('./ContactInfoManagerPage').then(val => ({ Component: val.ContactInfoManagerPage })),
     loader: ContactInfoManagerPageDataLoader,
   },
   {
     path: '/products', 
-    Component: ItemManagerPage,
+    lazy: () => import('./ItemManagerPage').then(val => ({ Component: val.ItemManagerPage })),
     loader: ItemManagerPageDataLoader,
   },
   {
     path: '/products/:id/:product_name',
-    Component: ItemManagerProductInfoPage,
+    lazy: () => import('./ItemManagerProductInfoPage').then(val => ({ Component: val.ItemManagerProductInfoPage })),
     loader: ItemManagerProductInfoPageDataLoader,
   }
 ])

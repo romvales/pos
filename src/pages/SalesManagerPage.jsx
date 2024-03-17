@@ -1,44 +1,23 @@
 import { Link, useLoaderData } from 'react-router-dom'
 import { useEffect } from 'react'
-import { deleteSales, getFullName, getSalesFromDatabase, pesoFormatter, saveSalesToDatabase } from '../actions'
-import { TrashIcon, ReceiptRefundIcon, CashIcon } from '@heroicons/react/outline'
+import { deleteSales, getFullName, pesoFormatter } from '../actions'
+import { TrashIcon, EyeIcon } from '@heroicons/react/outline'
 import { DefaultLayout } from '../layouts/DefaultLayout'
 import { capitalize, uniqBy } from 'lodash'
 import { useState } from 'react'
+import { InvoiceForm, defaultSale } from '../components/InvoiceForm'
+import { SalesManagerPageDataLoader } from './loaders'
 
 export {
   SalesManagerPage,
-  SalesManagerPageDataLoader
-}
-
-// @DATALOADER: staticSales
-async function SalesManagerPageDataLoader() {
-  const staticSales = []
-
-  // Explanation: Gets all sales from the database along with other related data (sales, order summary items, customer)
-  await getSalesFromDatabase(`
-    *,
-    customer:customer_id ( id, contact_type, first_name, last_name, middle_initial ),
-    selections (
-      *,
-      product:item_id (*)
-    )
-  `)
-    .then(res => {
-      const { data } = res
-
-      staticSales.push(...(data ?? []))
-    })
-
-  return {
-    staticSales,
-  }
 }
 
 function SalesManagerPage(props) {
   const { staticSales } = useLoaderData()
 
-  const [sales, setSales] = useState(staticSales)
+  const [collectionSales, setCollectionSales] = useState(staticSales)
+  const [selectedSales, setSelectedSales] = useState(structuredClone(defaultSale))
+  const [selectedCustomer, setSelectedCustomer] = useState()
   const [searchQuery, setSearchQuery] = useState('')
 
   // @FEATURE: Deletes a sale from the database
@@ -47,48 +26,77 @@ function SalesManagerPage(props) {
       .then(
         SalesManagerPageDataLoader()
           .then(({ staticSales }) => {
-            setSales(staticSales)
+            cleanUpCollection(staticSales)
           })
       )
   }
 
-  // @FEATURE: Change the status of a sale to PAID
-  const onClickPaid = (sale) => {
-    const cloneSale = structuredClone(sale)
+  // @FEATURE: Change the selected sales to display in the invoice form
+  const onClickViewSales = (sales) => {
+    setSelectedSales(sales)
+    setSelectedCustomer(sales.customer)
+  }
 
-    cloneSale.sales_status = 'paid'
-
-    saveSalesToDatabase(cloneSale)
-      .then(async () => {
-        const { staticSales } = await SalesManagerPageDataLoader()
-        setSales(staticSales)
+  const onSubmitSuccess = () => {
+    SalesManagerPageDataLoader()
+      .then(({ staticSales }) => {
+        cleanUpCollection(staticSales)
       })
   }
 
-  // @FEATURE: Change the status of a sale to REFUNDED
-  const onClickRefund = (sale) => {
-    const cloneSale = structuredClone(sale)
-    
-    cloneSale.sales_status = 'refunded'
-
-    saveSalesToDatabase(cloneSale)
-      .then(async () => {
-        const { staticSales } = await SalesManagerPageDataLoader()
-        setSales(staticSales)
+  const onSaveSuccess = () => {
+    SalesManagerPageDataLoader()
+      .then(({ staticSales }) => {
+        cleanUpCollection(staticSales)
       })
   }
 
-  const filterFunc = (sale) => {
+  const filterFunc = (sales) => {
     const patt = new RegExp(searchQuery)
-
-    return patt.test(sale.invoice_no) || (sale.customer && patt.test(getFullName(sale.customer)))
+    return patt.test(sales.invoice_no) || (sales.customer && patt.test(getFullName(sales.customer)))
   }
+
+  const cleanUpCollection = (collections) => {
+    const cleanedCollection = structuredClone(collections).map(sales => {
+      const selections = {}
+
+      // @NOTE: If selections is already transformed, don't try to retransform the sales' selections
+      if (!(sales.selections instanceof Array)) {
+        return sales
+      }
+
+      for (const selection of sales.selections) {
+        const product = selection.product ?? {}
+
+        product.item_quantity += selection.quantity
+
+        selections[selection.product?.id] = selection
+      }
+
+      sales.selections = selections
+      return sales
+    })
+
+    setCollectionSales(cleanedCollection)
+  }
+
+  useEffect(() => {
+    cleanUpCollection(collectionSales)
+  }, [])
 
   // @PAGE_URL: /sales
   return (
     <DefaultLayout>
       <div className='container mx-auto'>
-        <div className='row'>
+        <div className='row gap-3'>
+          <section className='col-xl-4 col-md-4'>
+            <InvoiceForm
+              persistPriceLevel={true}
+              selectedCustomerState={[selectedCustomer, setSelectedCustomer]}
+              salesState={[selectedSales, setSelectedSales]}
+              onSubmitSuccess={onSubmitSuccess}
+              onSaveSuccess={onSaveSuccess} />
+          </section>
           <section className='col-xl-7 col-md-7'>
             <h1 className='fs-3 fw-semibold mb-4'>Recent transactions</h1>
 
@@ -101,6 +109,11 @@ function SalesManagerPage(props) {
             <table className='table table-sm'>
               <thead>
                 <tr>
+                  <th className='text-secondary'>
+                    <div className='form-check'>
+                      <input className='form-check-input' type='checkbox' value='' id='flexCheckDefault' />
+                    </div>
+                  </th>
                   <th className='text-secondary'>
                     Invoice No.
                   </th>
@@ -123,48 +136,53 @@ function SalesManagerPage(props) {
               </thead>
               <tbody style={{ fontSize: '0.9rem' }}>
                 {
-                  uniqBy(sales.filter(filterFunc), 'invoice_no').map(sale => {
-                    const fullName = sale.customer ? getFullName(sale.customer) : 'Unknown'
+                  uniqBy(collectionSales.filter(filterFunc), 'invoice_no').map(sales => {
+                    const fullName = sales.customer ? getFullName(sales.customer) : 'Unknown'
+
+                    const selections = Object.values(sales.selections).filter(selection => selection.product)
 
                     const ProfileRef = (
                       <div className='d-flex align-items-center gap-1'>
                         <picture>
                           <img src={`https://placehold.co/32?text=${fullName.split(' ').at(0)}`} className='rounded-circle' />
                         </picture>
-                        <span className={`fw-semibold ${sale.customer ? '' : 'text-secondary'}`}>
+                        <span className={`fw-semibold ${sales.customer ? '' : 'text-secondary'}`}>
                           {fullName}
                         </span>
                       </div>
                     )
 
                     return (
-                      <tr key={sale.invoice_no}>
+                      <tr key={sales.invoice_no}>
                         <td className='align-middle'>
-                          <span title={`Invoice#${sale.invoice_no}`} style={{ fontSize: '0.8rem', fontFamily: 'Consolas' }} className='text-secondary'>
-                            #{sale.invoice_no.toString().slice(0, 10)}...
+                          <div className='form-check mt-1'>
+                            <input className='form-check-input' type='checkbox' value='' id='flexCheckDefault' />
+                          </div>
+                        </td>
+                        <td className='align-middle'>
+                          <span title={`Invoice#${sales.invoice_no}`} style={{ fontSize: '0.8rem', fontFamily: 'Consolas' }} className='text-secondary'>
+                            #{sales.invoice_no.toString().slice(0, 10)}...
                           </span>
                         </td>
                         <td className='align-middle'>
                           {
-                            sale.customer ?
-                              <Link style={{ textDecoration: 'none' }} className='d-flex align-items-center gap-1' to={{ pathname: `/contacts/${btoa(sale.customer.id)}` }}>
+                            sales.customer ?
+                              <Link style={{ textDecoration: 'none' }} className='d-flex align-items-center gap-1' to={{ pathname: `/contacts/${btoa(sales.customer.id)}` }}>
                                 {ProfileRef}
                               </Link>
                               :
-                              ProfileRef  
+                              ProfileRef
                           }
                         </td>
                         <td className='align-middle'>
-                          <time dateTime={sale.sales_date}>
-                            {new Date(sale.sales_date).toLocaleDateString('en', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+                          <time dateTime={sales.sales_date}>
+                            {new Date(sales.sales_date).toLocaleDateString('en', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                           </time>
                         </td>
                         <td className='align-middle'>
                           {
                             (() => {
-                              const status = capitalize(sale.sales_status)
-
-                              switch (sale.sales_status) {
+                              switch (sales.sales_status) {
                                 case 'in-progress':
                                   return <span className='badge text-bg-secondary bg-opacity-75 p-2 text-uppercase'>PENDING</span>
                                 case 'refunded':
@@ -178,33 +196,28 @@ function SalesManagerPage(props) {
                         <td className='align-middle'>
                           <div className='d-flex flex-column'>
                             <span>
-                              {pesoFormatter.format(sale.sub_total)}
+                              {pesoFormatter.format(sales.sub_total)}
                             </span>
                             <span style={{ fontSize: '0.6rem' }} className='text-secondary'>
                               {
-                                sale.selections.length == 1 ?
+                                selections?.length == 1 ?
                                   <>
-                                    {sale.selections.at(0).product?.item_name.slice(0, 13) + '...'}
+                                    {(selections?.at(0).product?.item_name?.slice(0, 13) ?? 'Unknown') + '...'}
                                   </>
                                   :
-                                  <>{sale.selections.length} items</>
+                                  <>{selections?.length} products</>
                               }
                             </span>
                           </div>
                         </td>
                         <td className='align-middle'>
                           <div className='d-flex gap-1'>
-                            <span className='d-inline-block' tabIndex='0' data-toggle='tooltip' title='Paid'>
-                              <button type={'button'} style={{ border: 0 }} className='btn p-0 text-secondary' onClick={() => onClickPaid(sale)}>
-                                <CashIcon width={18} />
+                            <span className='d-inline-block' tabIndex='0' data-toggle='tooltip' title='View Sales'>
+                              <button type={'button'} style={{ border: 0 }} className='btn p-0 text-primary' onClick={() => onClickViewSales(sales)}>
+                                <EyeIcon width={18} />
                               </button>
                             </span>
-                            <span className='d-inline-block' tabIndex='0' data-toggle='tooltip' title={`Refund ${sale.invoice_no}`}>
-                              <button type={'button'} style={{ border: 0 }} className='btn p-0 text-secondary' onClick={() => onClickRefund(sale)}>
-                                <ReceiptRefundIcon width={18} />
-                              </button>
-                            </span>
-                            <button type={'button'} style={{ border: 0 }} className='btn p-0 text-secondary' onClick={() => onDeleteTransaction(sale)}>
+                            <button type={'button'} style={{ border: 0 }} className='btn p-0 text-secondary' onClick={() => onDeleteTransaction(sales)}>
                               <TrashIcon width={18} />
                             </button>
                           </div>
@@ -215,9 +228,6 @@ function SalesManagerPage(props) {
                 }
               </tbody>
             </table>
-          </section>
-          <section className='col-xl-4 col-md-5'>
-
           </section>
         </div>
       </div>

@@ -1,25 +1,26 @@
-import { Link } from "react-router-dom"
-import { createPublicUrlForPath, pesoFormatter } from "../actions"
-import { useState } from "react"
+import { createPublicUrlForPath, pesoFormatter } from '../actions'
+import { useState } from 'react'
+import { addProductToSelection, deselectProductFromSelection } from './InvoiceForm'
 
 export { ProductListing }
 
 function ProductListing(props) {
   const products = props.products ?? []
   const [searchQuery, setSearchQuery] = useState('')
-  const addProductToSelection = props.addProductToSelection
-  const deselectProductFromSelection = props.deselectProductFromSelection
-  const sales = props.sales
+  const [sales, setSales] = props.salesState
+  const [recalculate, setRecalculate] = props.recalculator
 
   const onClickAddItemToOrderSummary = (product) => {
     const productId = product.id
 
-    if (product.item_quantity == 0) return
+    if (product.item_quantity <= 0) return
 
     if (sales.selections[productId]) {
-      deselectProductFromSelection(productId)
+      deselectProductFromSelection(productId, [sales, setSales])
+      setRecalculate(!recalculate)
     } else {
-      addProductToSelection(product)
+      addProductToSelection(product, [sales, setSales])
+      setRecalculate(!recalculate)
     }
   }
 
@@ -55,10 +56,10 @@ function ProductListing(props) {
 
               return (
                 <li 
-                  role='button' key={i} className='d-flex col-xl-4 col-sm-6 p-1' style={{ cursor: 'pointer' }} onClick={() => onClickAddItemToOrderSummary(product)}>
+                  role='button' key={i} className='d-flex col-xl-4 col-sm-6 p-1' style={{ cursor: product.item_quantity <= 0 ? 'not-allowed' : 'pointer' }} onClick={() => onClickAddItemToOrderSummary(product)}>
                   <div className={`border ${productHighlighted} shadow-sm h-100 w-100`} style={{ borderRadius: '0.45rem' }}>
                     <picture>
-                      <img style={{ height: '150px' }} className='img-fluid rounded-top border-bottom w-100 object-fit-cover' src={itemImageUrl} alt='' />
+                      <img style={{ height: '150px', filter: product.item_quantity <= 0 ? 'grayscale(100%)' : '' }} className='img-fluid rounded-top border-bottom w-100 object-fit-cover' src={itemImageUrl} alt='' />
                     </picture>
                     <div className='px-3 py-2'>
                       <h3 title={product.item_name} className='p-0 m-0 mb-2' style={{ fontWeight: 600, fontSize: '1.05rem' }}>
@@ -74,13 +75,13 @@ function ProductListing(props) {
                         </dd>
                         <dt className='d-none'>Remaining stock</dt>
                         <dd className='mb-0'>
-                          <p className='text-secondary mb-0' style={{ fontSize: '0.8rem' }}>Stock: {product.item_quantity}</p>
+                          <p className={`mb-0 ${ product.item_quantity <= 0 ? 'text-danger' : 'text-secondary' }`} style={{ fontSize: '0.8rem' }}>Stock: {product.item_quantity}</p>
                         </dd>
                       </dl>
                     </div>
                   </div>
                 </li>
-              )
+              )   
             })
           }
         </ul>

@@ -4,40 +4,12 @@ import { DefaultLayout } from '../layouts/DefaultLayout'
 import { AllProducts } from '../components/ItemManagerPage@AllProducts'
 import { MostPopular } from '../components/ItemManagerPage@MostPopular'
 import { ManageProductCategories } from '../components/ManageProductCategories'
-import { getDealers, getProductCategoriesFromDatabase, getProductsFromDatabase } from '../actions'
+import { getProductsFromDatabase } from '../actions'
 import { useLoaderData } from 'react-router-dom'
 import { NewProductForm } from '../components/NewProductForm'
 
 export {
   ItemManagerPage,
-  ItemManagerPageDataLoader
-}
-
-// @DATALOADER: staticCategories, staticDealers, staticProducts
-async function ItemManagerPageDataLoader() {
-  const staticCategories = []
-  const staticDealers = (await getDealers()) ?? []
-  const staticProducts = []
-
-  await getProductCategoriesFromDatabase()
-    .then(res => {
-      const { data } = res
-      staticCategories.push(...data)
-    })
-    .catch()
-
-  await getProductsFromDatabase()
-    .then(res => {
-      const { data } = res
-      staticProducts.push(...data)
-    })
-    .catch()
-
-  return {
-    staticCategories,
-    staticDealers,
-    staticProducts,
-  }
 }
 
 function ItemManagerPage(props) {

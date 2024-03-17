@@ -1,35 +1,13 @@
 import { useLoaderData, useNavigate } from 'react-router-dom'
 import { DefaultLayout } from '../layouts/DefaultLayout'
 import { XIcon } from '@heroicons/react/outline'
-import { createPublicUrlForPath, deleteProduct, getDealerName, getProductByIdAndProductNameFromDatabase, saveProductToDatabase, uploadFileToServer } from '../actions'
+import { createPublicUrlForPath, deleteProduct, getDealerName, saveProductToDatabase, uploadFileToServer } from '../actions'
 import { createRef, useEffect, useState } from 'react'
-import { ItemManagerPageDataLoader } from './ItemManagerPage'
 import { upperFirst } from 'lodash'
 import { ManageProductCategories } from '../components/ManageProductCategories'
 
 export {
   ItemManagerProductInfoPage,
-  ItemManagerProductInfoPageDataLoader,
-}
-
-async function ItemManagerProductInfoPageDataLoader({ params }) {
-  const { id, product_name } = params
-
-  const staticProduct = await getProductByIdAndProductNameFromDatabase(id, product_name)
-    .then(res => {
-      const { data } = res
-      return data
-    })
-    .catch()
-
-  const { staticCategories, staticProducts, staticDealers } = await ItemManagerPageDataLoader()
-
-  return {
-    staticProduct,
-    staticProducts,
-    staticCategories,
-    staticDealers,
-  }
 }
 
 const cleanItemPriceLevels = (itemPriceLevels) => {

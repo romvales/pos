@@ -102,7 +102,7 @@ function NewContactPopup(props) {
                           ))
                         }
                       </select>
-                      <label htmlFor='areaLocated' className='form-label fs-6'>Location</label>
+                      <label htmlFor='areaLocated' className='form-label fs-6'>Store</label>
                     </div>
                   </div>
                   <div className='col'>

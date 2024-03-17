@@ -31,7 +31,7 @@ function ContactTableListing(props) {
               Full Name
             </th>
             <th className='text-secondary'>
-              Area Name
+              Stores
             </th>
             <th className="text-secondary">
               Date Added
@@ -50,7 +50,7 @@ function ContactTableListing(props) {
               return (
                 <tr key={i}>
                   <td className='align-middle'>
-                    <div className='form-check'>
+                    <div className='form-check mt-1'>
                       <input className='form-check-input' type='checkbox' id='flexCheckDefault' />
                     </div>
                   </td>
