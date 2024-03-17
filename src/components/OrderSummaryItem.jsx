@@ -98,7 +98,7 @@ function OrderSummaryItem(props) {
   let itemImageUrl = placeholderUrl
 
   if (productData.item_image_url.length) 
-    itemImageUrl = createPublicUrlForPath(productData.item_image_url, { width: 32, height: 32 })
+    itemImageUrl = createPublicUrlForPath(productData.item_image_url)
 
   useEffect(() => { 
     updateSelectionValues()

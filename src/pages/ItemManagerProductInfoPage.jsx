@@ -111,7 +111,7 @@ function ItemManagerProductInfoPage(props) {
   }
 
   useEffect(() => {
-    if (product.item_image_url.length) setItemImageUrl(createPublicUrlForPath(product.item_image_url, { width: 300, height: 300 }))
+    if (product.item_image_url.length) setItemImageUrl(createPublicUrlForPath(product.item_image_url))
 
     // When the price levels of a product is empty, add default price levels
     for (let i = 0; i <= 5; i++) {

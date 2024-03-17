@@ -48,7 +48,7 @@ function ProductListing(props) {
               const itemPriceLevels = [ ...product.itemPriceLevels ].sort((a, b) => a.priceLevel.level_name < a.priceLevel.level_name)  
 
               if (product.item_image_url) {
-                itemImageUrl = createPublicUrlForPath(product.item_image_url, { width: 200, height: 200 })
+                itemImageUrl = createPublicUrlForPath(product.item_image_url)
               }
 
               // Puts a border to a selected product in the product list

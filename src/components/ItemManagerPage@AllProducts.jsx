@@ -28,7 +28,7 @@ function AllProducts(props) {
             let itemImageUrl = 'https://placehold.co/300?text=' + product.item_name
 
             if (product.item_image_url) {
-              itemImageUrl = createPublicUrlForPath(product.item_image_url, { transform: { width: 300, height: 300 } })
+              itemImageUrl = createPublicUrlForPath(product.item_image_url)
             }
 
             const ProductLink = (props) => (
