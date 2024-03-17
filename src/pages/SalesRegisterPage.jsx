@@ -27,6 +27,7 @@ function SalesRegisterPage(props) {
       <div className='container mx-auto'>
         <div className='row'>
           <section className='col-xl-7 col-md-7'>
+            New Feature!
             <ProductListing
               recalculator={[recalculate, setRecalculate]}
               salesState={[sales, setSales]}
