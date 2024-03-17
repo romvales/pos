@@ -9,6 +9,7 @@ import {
   getProductCategoriesFromDatabase, 
   getProductsFromDatabase, 
   getSalesFromDatabase } from '../actions'
+import { DefaultClient } from '../supabase'
 
 // @DATALOADER: staticProducts, staticCustomers, staticLocations, staticInvoiceTypes
 export async function SalesRegisterPageDataLoader() {

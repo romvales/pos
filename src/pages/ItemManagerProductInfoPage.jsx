@@ -41,7 +41,7 @@ function ItemManagerProductInfoPage(props) {
   const [itemImageUrl, setItemImageUrl] = useState(placeholderUrl)
   const [productName, setProductName] = useState(product.item_name)
   const [generatedUnitCode, setGeneratedUnitCode] = useState(product.code)
-  const [priceLevels, setPriceLevels] = useState([ ...cleanItemPriceLevels(product.itemPriceLevels) ].reverse())
+  const [priceLevels, setPriceLevels] = useState([ ...cleanItemPriceLevels(product.itemPriceLevels) ])
   const mapStaticDealersByDealerName = {}
 
   for (const dealer of staticDealers) {
@@ -263,7 +263,7 @@ function ItemManagerProductInfoPage(props) {
 
             <div className='d-flex flex-column gap-2'>
               {
-                priceLevels.reverse().map((level, i) => {
+                priceLevels.map((level, i) => {
                   
                   const onValueChange = (ev) => {
                     const clonePriceLevels = structuredClone(priceLevels)
