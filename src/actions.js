@@ -205,19 +205,19 @@ async function saveProductToDatabase(productData) {
 
       if (priceLevels) {
         for (const levelData of priceLevels) {
-          const { priceLevels, itemPriceLevels } = levelData
+          const { priceLevel, itemPriceLevel } = levelData
 
           // First, save the price level to the database
           toPerform.push(
             DefaultClient.from('price_levels')
-              .upsert(priceLevels, { onConflict: 'id' })
+              .upsert(priceLevel, { onConflict: 'id' })
               .select()
               .single()
               .then(async res => {
                 const { data } = res
                 const savedPriceLevel = data
 
-                itemPriceLevels.price_level_id = savedPriceLevel.id
+                itemPriceLevel.price_level_id = savedPriceLevel.id
 
                 // and then the itemPriceLevels collection.
                 await DefaultClient.from('items_price_levels').upsert(itemPriceLevels, { onConflict: 'id' })

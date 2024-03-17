@@ -15,13 +15,13 @@ const cleanItemPriceLevels = (itemPriceLevels) => {
     const priceLevel = itemPriceLevel.priceLevel
 
     return {
-      priceLevels: {
+      priceLevel: {
         id: priceLevel.id,
         level_name: priceLevel.level_name,
         code: priceLevel.code,
         price: priceLevel.price,
       },
-      itemPriceLevels: {
+      itemPriceLevel: {
         id: itemPriceLevel.id,
         item_id: itemPriceLevel.item_id,
         price_level_id: itemPriceLevel.price_level_id,
@@ -41,7 +41,7 @@ function ItemManagerProductInfoPage(props) {
   const [itemImageUrl, setItemImageUrl] = useState(placeholderUrl)
   const [productName, setProductName] = useState(product.item_name)
   const [generatedUnitCode, setGeneratedUnitCode] = useState(product.code)
-  const [priceLevels, setPriceLevels] = useState([ ...cleanItemPriceLevels(product.itemPriceLevels) ])
+  const [priceLevels, setPriceLevels] = useState([ ...cleanItemPriceLevels(product.itemPriceLevels) ].sort((a, b) => a.priceLevel.level_name > b.priceLevel.level_name))
   const mapStaticDealersByDealerName = {}
 
   for (const dealer of staticDealers) {
@@ -98,12 +98,12 @@ function ItemManagerProductInfoPage(props) {
   const addPriceLevel = () => {
     const clone = structuredClone(priceLevels)
     priceLevels.unshift({
-      priceLevels: {
+      priceLevel: {
         level_name: encodeURIComponent(product.item_name) + `_price_level_${priceLevels.length + 1}`,
         code: crypto.getRandomValues(new Uint32Array(2)).reduce((a, b) => a + b),
         price: 0,
       },
-      itemPriceLevels: {
+      itemPriceLevel: {
         item_id: product.id,
       }
     })
@@ -270,7 +270,7 @@ function ItemManagerProductInfoPage(props) {
                     const newPriceValue = Number(ev.target.value)
 
                     if (!Number.isNaN(newPriceValue)) {
-                      clonePriceLevels[i].priceLevels.price = newPriceValue
+                      clonePriceLevels[i].priceLevel.price = newPriceValue
                     }
 
                     setPriceLevels(clonePriceLevels)
@@ -282,7 +282,7 @@ function ItemManagerProductInfoPage(props) {
                         type='number'
                         className='remedyArrow form-control' 
                         id='priceLevelInput' 
-                        value={level.priceLevels.price.toString()} 
+                        value={level.priceLevel.price.toString()} 
                         onChange={onValueChange} />
                       <label htmlFor='priceLevelInput' className='form-label fs-6'>Level {i+1}</label>
                     </div>

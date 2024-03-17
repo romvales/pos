@@ -39,7 +39,8 @@ function AllProducts(props) {
               </Link>
             )
 
-            const itemPriceLevels = [...product.itemPriceLevels].sort((a, b) => a.priceLevel.level_name < a.priceLevel.level_name)
+            // @NOTE: Instead of using the unit cost of a product, we'll revert to the price level 1.
+            const itemPriceLevels = [...product.itemPriceLevels].sort((a, b) => a.priceLevel.level_name > b.priceLevel.level_name)
 
             return (
               <li className='col-sm-12 col-xl-4 mb-2' key={i}>
