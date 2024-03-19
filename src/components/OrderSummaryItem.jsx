@@ -35,7 +35,7 @@ function OrderSummaryItem(props) {
   const selectedPriceLevel = itemPriceLevels[selectedCustomerPriceLevel-1]
 
   const checkValue = () => {
-    if (selection.quantity == 0) {
+    if (selection.quantity === 0) {
       deselectProductFromSelection(productData.id, props.salesState)
       setRecalculate(!recalculate)
       return 0
@@ -71,6 +71,10 @@ function OrderSummaryItem(props) {
   const updateSelectionValues = () => {
     const clone = structuredClone(sales)
 
+    if (checkValue() == 0) {
+      return
+    }
+
     let selectionPrice = /** selection.product.item_cost */ itemPriceLevels[0].priceLevel.price
 
     if (!selectedPriceLevel) {
@@ -83,10 +87,6 @@ function OrderSummaryItem(props) {
 
     selection.cost = selectionPrice
     selection.price = selection.quantity*selectionPrice
-
-    if (checkValue() == 0) {
-      return
-    }
 
     clone.selections[productData.id] = selection
 

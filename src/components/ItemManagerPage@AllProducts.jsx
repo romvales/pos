@@ -80,7 +80,7 @@ function AllProducts(props) {
                           Price
                         </dt>
                         <dd className='mb-0 text-secondary'>
-                          <p className='mb-0' style={{ fontSize: '0.8rem' }}>{pesoFormatter.format(itemPriceLevels.at(0).priceLevel.price)} ({product.item_quantity} available)</p>
+                          <p className='mb-0' style={{ fontSize: '0.8rem' }}>{pesoFormatter.format(itemPriceLevels.at(0)?.priceLevel.price ?? 0)} ({product.item_quantity} available)</p>
                         </dd>
                       </div>
                     </dl>

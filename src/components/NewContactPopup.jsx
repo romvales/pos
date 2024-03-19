@@ -1,6 +1,6 @@
 
-import { capitalize } from 'lodash'
-import { createRef, useEffect, useMemo } from 'react'
+import { capitalize, result } from 'lodash'
+import { createRef, useEffect, useMemo, useState } from 'react'
 import { getContacts, getContactsFromDatabase, saveContactToDatabase } from '../actions'
 
 export { NewContactPopup }
@@ -8,26 +8,54 @@ export { NewContactPopup }
 const contactTypes = ['customer', 'staff', 'dealer']
 const civilStatuses = ['unknown', 'single', 'divorced', 'widow', 'married']
 
+const createEmptyContact = () => {
+  const now = new Date()
+
+  const dateOpen = `${now.getFullYear()}-${now.getMonth().toString().padStart(2, '0')}-${now.getDate()}`
+
+  return {
+    contact_type: 'customer',
+    info_type: 'personal',
+    first_name: '',
+    middle_initial: '',
+    last_name: '',
+    price_level: 1,
+    address_line: '',
+    birthdate: null,
+    birthplace: '',
+    sex: 'male',
+    citizenship: 'Filipino',
+    occupation: '',
+    tin_no: '',
+    company_name: '',
+    company_address: '',
+    business_nature: '',
+    date_open: dateOpen,
+    approved_by: null,
+    remarks: '',
+  }
+}
+
 function NewContactPopup(props) {
   const titleHeader = props.title
   const formRef = createRef()
   const closePopup = createRef()
   const isReadOnlyCustomerType = props.isReadOnlyCustomerType
   const locations = props.locations ?? []
-  const contacts = structuredClone(props.contacts ?? { customers: [], staffs: [], dealers: [] })
   const updateContacts = props.updateContacts
-  const existingContact = props.existingContact
+  const [contact, setContact] = useState(createEmptyContact())
   const updateExistingContact = props.updateExistingContact
 
   const onSubmit = (ev) => {  
     ev.preventDefault()
 
     const formData = new FormData(formRef.current)
+
+    const existingContact = structuredClone(contact)
     let contactData = Object.fromEntries(formData)
 
     contactData.approved_by = null
 
-    // @
     if (existingContact) {
       for (const key of Object.keys(contactData)) {
         existingContact[key] = contactData[key]
@@ -37,16 +65,26 @@ function NewContactPopup(props) {
     }
 
     saveContactToDatabase(contactData)
-      .then(async () => {
+      .then(async (res) => {
+        const { data } = res
+        
         await getContactsFromDatabase()
           .then(async res => {
-            await getContacts(contacts)
-            updateContacts(contacts)
+            const url = new URL(document.URL)
+              
+            // @NOTE: When the pathname is /contacts, assume that updateContacts is an object
+            if (url.pathname == '/contacts') {
+              const resultingContacts = { customers: [], staffs: [], dealers: [] }
+              await getContacts(resultingContacts)
+              updateContacts(resultingContacts)
+            } else {
+              const { data } = res
+              updateContacts(data)
+            }
+
           })
 
-        if (existingContact) {
-          updateExistingContact(structuredClone(existingContact))
-        }
+        if (updateExistingContact) updateExistingContact(data)
       })
       .catch()
       
@@ -58,6 +96,18 @@ function NewContactPopup(props) {
   const onDiscard = () => {
     formRef.current.reset()
   }
+
+  const onValueChange = (targetValue, key) => {
+    const clonedContact = structuredClone(contact)
+    clonedContact[key] = targetValue
+    setContact(clonedContact)
+  }
+
+  useEffect(() => {
+    if (props.existingContact) {
+      setContact(structuredClone(props.existingContact))
+    }
+  }, [ props.existingContact ])
 
   return (
     <div className='modal fade' id='addContact' tabIndex='-1' aria-labelledby='addContactModal' data-bs-backdrop='static' data-bs-keyboard='false'>
@@ -74,11 +124,11 @@ function NewContactPopup(props) {
 
                 <div className='input-group input-group-sm mb-2'>
                   <span className='input-group-text input-group-text disabled fw-semibold'>ID</span>
-                  <input className='form-control form-control-sm' placeholder='Auto-generated' disabled defaultValue={existingContact?.id} />
+                  <input className='form-control form-control-sm' placeholder='Auto-generated' disabled defaultValue={contact?.id} />
                 </div>
 
                 <div className='form-floating mb-2'>
-                  <select id='contactType' className='form-select' name='contact_type' disabled={isReadOnlyCustomerType} defaultValue={existingContact?.contact_type}>
+                  <select id='contactType' className='form-select' name='contact_type' disabled={isReadOnlyCustomerType} defaultValue={contact?.contact_type}>
                     {
                       contactTypes.map(type => (
                         <option value={type} key={type}>
@@ -93,7 +143,7 @@ function NewContactPopup(props) {
                 <div className='d-flex gap-2 mb-2'>
                   <div className='col'>
                     <div className='form-floating'>
-                      <select id='areaLocated' className='form-select' name='location_id' defaultValue={existingContact?.location_id}>
+                      <select id='areaLocated' className='form-select' name='location_id' defaultValue={contact?.location_id}>
                         {
                           locations.map(location => (
                             <option value={location.id} key={location.id}>
@@ -107,8 +157,15 @@ function NewContactPopup(props) {
                   </div>
                   <div className='col'>
                     <div className='form-floating'>
-                      <input type='number' name='price_level' defaultValue={existingContact?.price_level ?? 0} className='form-control' id='priceLevelInput' required />
-                      <label htmlFor='priceLevelInput'  >Price Level</label>
+                      <input 
+                        type='number' 
+                        name='price_level'
+                        min={1} max={100}
+                        value={contact?.price_level.toLocaleString()}
+                        className='form-control' id='priceLevelInput'
+                        onChange={ev => { onValueChange(ev.target.valueAsNumber, 'price_level') }}
+                        required />
+                      <label htmlFor='priceLevelInput'>Price Level</label>
                     </div>
                   </div>
                 </div>
@@ -118,7 +175,7 @@ function NewContactPopup(props) {
                   <div className='row'>
                     <div className='col'>
                       <div className='form-check'>
-                        <input className='form-check-input' value={'personal'} type='radio' name='info_type' id='personalRadioButton' defaultChecked={existingContact?.info_type === 'personal'} />
+                        <input className='form-check-input' value={'personal'} type='radio' name='info_type' id='personalRadioButton' defaultChecked={contact?.info_type === 'personal'} />
                         <label className='form-check-label' htmlFor='personalRadioButton'>
                           Personal
                         </label>  
@@ -126,7 +183,7 @@ function NewContactPopup(props) {
                     </div>
                     <div className='col'>
                       <div className='form-check'>
-                        <input className='form-check-input' value={'corporate'} type='radio' name='info_type' id='coporateRadioButton' defaultChecked={existingContact?.info_type === 'corporate'} />
+                        <input className='form-check-input' value={'corporate'} type='radio' name='info_type' id='coporateRadioButton' defaultChecked={contact?.info_type === 'corporate'} />
                         <label className='form-check-label' htmlFor='coporateRadioButton'>
                           Corporate
                         </label>
@@ -143,13 +200,13 @@ function NewContactPopup(props) {
                 <div className='d-flex gap-2 mb-2'>
                   <div className='col'>
                     <div className='form-floating'>
-                      <input name='first_name' className='form-control' id='firstNameInput' required defaultValue={existingContact?.first_name} />
+                      <input name='first_name' className='form-control' id='firstNameInput' required defaultValue={contact?.first_name} />
                       <label htmlFor='firstNameInput'>*First Name</label>
                     </div>
                   </div>
                   <div className='col'>
                     <div className='form-floating'>
-                      <input name='middle_initial' className='form-control' id='middleInitialInput' maxLength={1} defaultValue={existingContact?.middle_initial} />
+                      <input name='middle_initial' className='form-control' id='middleInitialInput' maxLength={1} defaultValue={contact?.middle_initial} />
                       <label htmlFor='middleInitialInput'>Middle Initial</label>
                     </div>
                   </div>
@@ -157,35 +214,35 @@ function NewContactPopup(props) {
 
                 <div className='mb-2'>
                   <div className='form-floating'>
-                    <input name='last_name' className='form-control' id='lastNameInput' defaultValue={existingContact?.last_name} />
+                    <input name='last_name' className='form-control' id='lastNameInput' defaultValue={contact?.last_name} />
                     <label htmlFor='lastNameInput'>*Last Name</label>
                   </div>
                 </div>
 
                 <div className='mb-2'>
                   <div className='form-floating'>
-                    <input name='address_line' className='form-control' id='addressInput' defaultValue={existingContact?.address_line} />
+                    <input name='address_line' className='form-control' id='addressInput' defaultValue={contact?.address_line} />
                     <label htmlFor='addressInput'>Address</label>
                   </div>
                 </div>
 
                 <div className='mb-2'>
                   <div className='form-floating'>
-                    <input type='date' name='birthdate' className='form-control' id='birthdateInput' defaultValue={existingContact?.birthdate} />
+                    <input type='date' name='birthdate' className='form-control' id='birthdateInput' defaultValue={contact?.birthdate} />
                     <label htmlFor='birthdateInput'>Birthdate</label>
                   </div>
                 </div>
 
                 <div className='mb-2'>
                   <div className='form-floating'>
-                    <input name='birthplace' className='form-control' id='birthplaceInput' defaultValue={existingContact?.birthplace} />
+                    <input name='birthplace' className='form-control' id='birthplaceInput' defaultValue={contact?.birthplace} />
                     <label htmlFor='birthplaceInput'>Birthplace</label>
                   </div>
                 </div>
 
                 <div className='mb-2'>
                   <div className='form-floating'>
-                    <select id='civilStatusInput' className='form-select' name='civil_status' defaultValue={existingContact?.civil_status}>
+                    <select id='civilStatusInput' className='form-select' name='civil_status' defaultValue={contact?.civil_status}>
                       {
                         civilStatuses.map(status => (
                           <option key={status} value={status}>
@@ -204,7 +261,7 @@ function NewContactPopup(props) {
                     <div className='row'>
                       <div className='col'>
                         <div className='form-check'>
-                          <input className='form-check-input' value={'male'} type='radio' name='sex' id='maleRadioButton' defaultChecked={existingContact?.sex == 'male'} />
+                          <input className='form-check-input' value={'male'} type='radio' name='sex' id='maleRadioButton' defaultChecked={contact?.sex == 'male'} />
                           <label className='form-check-label' htmlFor='maleRadioButton'>
                             Male
                           </label>
@@ -212,7 +269,7 @@ function NewContactPopup(props) {
                       </div>
                       <div className='col'>
                         <div className='form-check'>
-                          <input className='form-check-input' value={'female'} type='radio' name='sex' id='femaleRadioButton' defaultChecked={existingContact?.sex == 'female'} />
+                          <input className='form-check-input' value={'female'} type='radio' name='sex' id='femaleRadioButton' defaultChecked={contact?.sex == 'female'} />
                           <label className='form-check-label' htmlFor='femaleRadioButton'>
                             Female
                           </label>
@@ -223,7 +280,7 @@ function NewContactPopup(props) {
                   <div className='col'>
                     <div className='mb-2'>
                       <div className='form-floating'>
-                        <input name='citizenship' className='form-control' id='citizenshipInput' defaultValue={existingContact?.citizenship} />
+                        <input name='citizenship' className='form-control' id='citizenshipInput' defaultValue={contact?.citizenship} />
                         <label htmlFor='citizenshipInput'>Citizenship</label>
                       </div>
                     </div>
@@ -232,14 +289,14 @@ function NewContactPopup(props) {
 
                 <div className='mb-2'>
                   <div className='form-floating'>
-                    <input name='occupation' className='form-control' id='occupationInput' defaultValue={existingContact?.occupation} />
+                    <input name='occupation' className='form-control' id='occupationInput' defaultValue={contact?.occupation} />
                     <label htmlFor='occupationInput'>Occupation</label>
                   </div>
                 </div>
 
                 <div className='mb-2'>
                   <div className='form-floating'>
-                    <input name='tin_no' className='form-control' id='tinNoInput' defaultValue={existingContact?.tin_no} />
+                    <input name='tin_no' className='form-control' id='tinNoInput' defaultValue={contact?.tin_no} />
                     <label htmlFor='tinNoInput'>TIN #</label>
                   </div>
                 </div>
@@ -250,21 +307,21 @@ function NewContactPopup(props) {
 
                 <div className='mb-2'>
                   <div className='form-floating'>
-                    <input name='company_name' className='form-control' id='companyNameInput' defaultValue={existingContact?.company_name} />
+                    <input name='company_name' className='form-control' id='companyNameInput' defaultValue={contact?.company_name} />
                     <label htmlFor='companyNameInput'>Company Name</label>
                   </div>
                 </div>
 
                 <div className='mb-2'>
                   <div className='form-floating'>
-                    <input name='company_address' className='form-control' id='companyAddressInput' defaultValue={existingContact?.company_address} />
+                    <input name='company_address' className='form-control' id='companyAddressInput' defaultValue={contact?.company_address} />
                     <label htmlFor='companyAddressInput'>Company Address</label>
                   </div>
                 </div>
 
                 <div className='mb-2'>
                   <div className='form-floating'>
-                    <input name='business_nature' className='form-control' id='businessNatureInput' defaultValue={existingContact?.business_nature} />
+                    <input name='business_nature' className='form-control' id='businessNatureInput' defaultValue={contact?.business_nature} />
                     <label htmlFor='businessNatureInput'>Nature of Business</label>
                   </div>
                 </div>
@@ -275,7 +332,7 @@ function NewContactPopup(props) {
 
                 <div className='mb-2'>
                   <div className='form-floating'>
-                    <input type='date' name='date_open' defaultValue={existingContact?.date_open} className='form-control' id='dateOpenInput' />
+                    <input type='date' name='date_open' defaultValue={contact?.date_open} className='form-control' id='dateOpenInput' />
                     <label htmlFor='dateOpenInput'>Date Open</label>
                   </div>
                 </div>
@@ -289,7 +346,7 @@ function NewContactPopup(props) {
 
                 <div className='mb-2'>
                   <div className='form-floating'>
-                    <input name='remarks' className='form-control' id='remarksInput' defaultValue={existingContact?.remarks} />
+                    <input name='remarks' className='form-control' id='remarksInput' defaultValue={contact?.remarks} />
                     <label htmlFor='remarksInput'>Remarks</label>
                   </div>
                 </div>

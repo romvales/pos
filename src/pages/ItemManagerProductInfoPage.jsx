@@ -41,6 +41,8 @@ function ItemManagerProductInfoPage(props) {
   const [itemImageUrl, setItemImageUrl] = useState(placeholderUrl)
   const [productName, setProductName] = useState(product.item_name)
   const [generatedUnitCode, setGeneratedUnitCode] = useState(product.code)
+
+  // @NOTE: Instead of using the unit cost of a product, we'll revert to the price level 1.
   const [priceLevels, setPriceLevels] = useState([ ...cleanItemPriceLevels(product.itemPriceLevels) ].sort((a, b) => a.priceLevel.level_name > b.priceLevel.level_name))
   const mapStaticDealersByDealerName = {}
 
@@ -107,7 +109,9 @@ function ItemManagerProductInfoPage(props) {
         item_id: product.id,
       }
     })
-    setPriceLevels(clone)
+
+    // @NOTE: Instead of using the unit cost of a product, we'll revert to the price level 1.
+    setPriceLevels(clone.sort((a, b) => a.priceLevel.level_name > b.priceLevel.level_name))
   }
 
   useEffect(() => {

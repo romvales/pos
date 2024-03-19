@@ -36,6 +36,7 @@ function SalesRegisterPage(props) {
           <section className='col-xl-4 col-md-5'>
             <InvoiceForm
               salesState={[sales, setSales]}
+              recalculator={[recalculate, setRecalculate]}
               onSubmitSuccess={onSubmitSuccess} />
           </section>
         </div>

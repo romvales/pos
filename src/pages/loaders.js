@@ -179,7 +179,7 @@ export async function ContactInfoManagerPageDataLoader({ params }) {
     })
 
   return {
-    staticContact,
+    staticContact: structuredClone(staticContact),
     staticLocations,
   }
 }

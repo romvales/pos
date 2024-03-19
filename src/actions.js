@@ -23,7 +23,7 @@ export {
   getStaffs,
   getDealers,
   getContacts,
-  
+
   deleteLocation,
   deleteContact,
   deleteProductCategory,
@@ -57,16 +57,24 @@ async function getLocationsFromDatabase() {
 
 async function getContactsFromDatabase(contactType) {
   if (!contactType) {
-    return DefaultClient.from('contacts').select().order('date_added', { ascending: false })
+    return DefaultClient.from('contacts').select().order('date_added', { ascending: false }).then(res => {
+      res.data = res.data.map(cleanContactInfo)
+      return res
+    })
   }
 
   return DefaultClient.from('contacts').select().match({
     contact_type: contactType,
-  }).order('date_added', { ascending: false })
+  }).order('date_added', { ascending: false }).then(res => {
+    res.data = res.data.map(cleanContactInfo)
+    return res
+  })
 }
 
 async function getContactByIdFromDatabase(id) {
-  return DefaultClient.from('contacts').select().single().match({ id })
+  const res = await DefaultClient.from('contacts').select().match({ id }).single()
+  res.data = cleanContactInfo(res.data)
+  return res
 }
 
 async function getProductCategoriesFromDatabase() {
@@ -97,6 +105,10 @@ async function deleteContact(contactData) {
   return DefaultClient.from('contacts')
     .delete({ count: 1 })
     .eq('id', contactData.id)
+    .then(() => {
+      if (contactData.profile_url.length == 0) return
+      return DefaultClient.storage.from('images').remove(contactData.profile_url)
+    })
 }
 
 async function deleteProductCategory(categoryData) {
@@ -109,6 +121,10 @@ async function deleteProduct(product) {
   return DefaultClient.from('items')
     .delete({ count: 1 })
     .eq('id', product.id)
+    .then(() => {
+      if (product.item_image_url.length == 0) return
+      return DefaultClient.storage.from('images').remove(product.item_image_url)
+    })
 }
 
 async function deleteSales(salesData) {
@@ -122,14 +138,14 @@ async function saveLocationToDatabase(location) {
 }
 
 async function saveContactToDatabase(contactData) {
-  const now = new Date()
-
-  // yields to yyyy-mm-dd
-  const dateOpen = `${now.getFullYear()}-${now.getMonth().toString().padStart(2, '0')}-${now.getDate()}`
-
   if (contactData.birthdate == '') delete contactData.birthdate
-  contactData.date_open = dateOpen
-  return DefaultClient.from('contacts').upsert(contactData, { onConflict: 'id' })
+  else contactData.birthdate = new Date(contactData.birthdate)
+  contactData.date_open = new Date(contactData.date_open)
+
+  return DefaultClient.from('contacts').upsert(contactData, { onConflict: 'id' }).select().single().then(res => {
+    res.data = cleanContactInfo(res.data)
+    return res
+  })
 }
 
 async function saveSalesToDatabase(sales) {
@@ -151,7 +167,7 @@ async function saveSalesToDatabase(sales) {
     .then(async res => {
       const { data } = res
 
-      const [ savedSales ] = data
+      const [savedSales] = data
       const toPerform = []
 
       if (sales.selections) {
@@ -172,7 +188,7 @@ async function saveSalesToDatabase(sales) {
             delete product.category
             delete product.dealer
             delete product.itemPriceLevels
-            
+
             toPerform.push(saveProductToDatabase(product))
           }
 
@@ -185,7 +201,7 @@ async function saveSalesToDatabase(sales) {
             DefaultClient.from('selections').upsert(toSave, { onConflict: 'id' })
           )
         }
-        
+
       }
 
       await Promise.all(toPerform)
@@ -195,7 +211,7 @@ async function saveSalesToDatabase(sales) {
 
 async function saveProductToDatabase(productData) {
   const clonedProduct = structuredClone(productData)
-  const priceLevels = productData.priceLevels
+  const priceLevels = productData.priceLevels ?? []
 
   delete clonedProduct.priceLevels
 
@@ -220,7 +236,7 @@ async function saveProductToDatabase(productData) {
                 itemPriceLevel.price_level_id = savedPriceLevel.id
 
                 // and then the itemPriceLevels collection.
-                await DefaultClient.from('items_price_levels').upsert(itemPriceLevels, { onConflict: 'id' })
+                await DefaultClient.from('items_price_levels').upsert(itemPriceLevel, { onConflict: 'id' })
               })
           )
         }
@@ -266,7 +282,7 @@ async function getCustomers() {
   await getContactsFromDatabase('customer')
     .then(res => {
       const { data } = res
-      customers.push(...data)
+      customers.push(...data.map(cleanContactInfo))
     })
     .catch()
 
@@ -279,7 +295,7 @@ async function getStaffs() {
   await getContactsFromDatabase('staff')
     .then(res => {
       const { data } = res
-      staffs.push(...data)
+      staffs.push(...data.map(cleanContactInfo))
     })
     .catch()
 
@@ -298,7 +314,7 @@ async function getDealers() {
   await getContactsFromDatabase('dealer')
     .then(res => {
       const { data } = res
-      staffs.push(...data)
+      staffs.push(...data.map(cleanContactInfo))
     })
     .catch()
 
@@ -326,3 +342,12 @@ const pesoFormatter = Intl.NumberFormat('en', {
   currency: 'PHP',
 })
 
+const cleanContactInfo = (contact) => {
+  const dateOpen = new Date(contact.date_open)
+  contact.date_open = `${dateOpen.getFullYear()}-${(dateOpen.getMonth() + 1).toString().padStart(2, '0')}-${dateOpen.getDate()}`
+
+  const birthdate = new Date(contact.birthdate)
+  contact.birthdate = `${birthdate.getFullYear()}-${(birthdate.getMonth() + 1).toString().padStart(2, '0')}-${birthdate.getDate()}`
+
+  return contact
+}

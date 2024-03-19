@@ -8,7 +8,6 @@ import { getFullName, pesoFormatter, saveSalesToDatabase } from '../actions'
 import { OrderSummaryItem } from '../components/OrderSummaryItem'
 import { NewContactPopup } from '../components/NewContactPopup'
 import { ContactSelector } from './ContactSelector'
-import { SalesRegisterPageDataLoader } from '../pages/loaders'
 
 export { InvoiceForm }
 
@@ -77,7 +76,7 @@ function InvoiceForm(props) {
   const { staticInvoiceTypes, staticCustomers, staticLocations } = useLoaderData()
 
   const [contacts, setContacts] = useState(staticCustomers)
-  const [recalculate, setRecalculate] = useState(false)
+  const [recalculate, setRecalculate] = props.recalculator
   const [selectedCustomer, setSelectedCustomer] = props.selectedCustomerState ?? useState()
   const [sales, setSales] = props.salesState
   const persistPriceLevel = props.persistPriceLevel

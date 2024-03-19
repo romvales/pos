@@ -19,6 +19,7 @@ function SalesManagerPage(props) {
   const [selectedSales, setSelectedSales] = useState(structuredClone(defaultSale))
   const [selectedCustomer, setSelectedCustomer] = useState()
   const [searchQuery, setSearchQuery] = useState('')
+  const [recalculate, setRecalculate] = useState()
 
   // @FEATURE: Deletes a sale from the database
   const onDeleteTransaction = (sale) => {
@@ -94,6 +95,7 @@ function SalesManagerPage(props) {
               persistPriceLevel={true}
               selectedCustomerState={[selectedCustomer, setSelectedCustomer]}
               salesState={[selectedSales, setSelectedSales]}
+              recalculator={[recalculate, setRecalculate]}
               onSubmitSuccess={onSubmitSuccess}
               onSaveSuccess={onSaveSuccess} />
           </section>

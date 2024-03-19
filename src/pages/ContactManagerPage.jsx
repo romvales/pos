@@ -189,7 +189,7 @@ function ContactManagerPage(props) {
                         <td className='align-middle'>
                           {locationName}
                         </td>
-                        <td className='d-flex align-items-center justify-content-end'>
+                        <td className='align-middle'>
                           <button className='btn border-0' onClick={() => onClickDeleteLocation(location)}>
                             <TrashIcon width={20} />
                           </button>
