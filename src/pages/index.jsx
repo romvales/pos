@@ -42,5 +42,9 @@ const router = createBrowserRouter([
     path: '/products/:id/:product_name',
     lazy: () => import('./ItemManagerProductInfoPage').then(val => ({ Component: val.ItemManagerProductInfoPage })),
     loader: ItemManagerProductInfoPageDataLoader,
+  },
+  {
+    path: '/settings',
+    lazy: () => import('./SettingsPage').then(val => ({ Component: val.SettingsPage })),
   }
 ])

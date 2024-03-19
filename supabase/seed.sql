@@ -7,6 +7,9 @@ VALUES
   ('STOCK OUT', 'BO'),
   ('STOCK IN', 'IN');
 
+DROP POLICY IF EXISTS "Allow upload on `images` bucket." ON storage.objects;
+
+DELETE FROM storage.buckets WHERE (id = 'images');
 -- Create storage bucket for the uploaded files
 INSERT INTO storage.buckets (id, name, public, allowed_mime_types)
 VALUES

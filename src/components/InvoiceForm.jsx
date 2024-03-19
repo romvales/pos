@@ -14,7 +14,7 @@ export { InvoiceForm }
 // Used for generating a new invoice number
 const generateInvoiceNo = () => {
   const a = new Uint32Array(2)
-  return crypto.getRandomValues(a).reduce((a, b) => a + b).toString() + a.at(0).toString().slice(0, 5)
+  return crypto.getRandomValues(a).reduce((a, b) => a + b).toString() + a.at(0).toString().slice(0, 3)
 }
 
 // Used for resetting the sales form state to default 
@@ -30,7 +30,7 @@ export const defaultSale = {
   amount_paid: 0,
   change_due: 0,
   invoice_no: generateInvoiceNo(),
-  payment_method: '',
+  payment_method: 'cash',
 
   //
   selections: {},
@@ -390,7 +390,7 @@ function InvoiceForm(props) {
                         <div className='btn-group' role='group' aria-label='Cash payment method'>
                           <input
                             ref={checkboxRef}
-                            checked={sales.payment_method != ''}
+                            checked={sales.payment_method == 'cash'}
                             type='checkbox'
                             className='btn-check'
                             id='cashPaymentMethod' autoComplete='off' onChange={onChange} />
