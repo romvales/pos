@@ -11,6 +11,7 @@ export {
   getFullName, // Does not connect/query the database.
   getDealerName, // 
   getInvoiceTypesFromDatabase,
+  getProductByBarcodeFromDatabase,
   getProductByIdAndProductNameFromDatabase,
   getProductCategoriesFromDatabase,
   getProductsFromDatabase,
@@ -259,6 +260,21 @@ function getProductByIdAndProductNameFromDatabase(id, item_name) {
       priceLevel:price_level_id (*)
     )
   `).single().match({ id, item_name })
+}
+
+function getProductByBarcodeFromDatabase(barcode) {
+  return DefaultClient.from('items').select(`
+    *,
+    dealer:dealer_id(*),
+    category:item_type_id(*),
+    itemPriceLevels:items_price_levels(
+      price_level_id,
+      priceLevel:price_level_id(
+        level_name,
+        price
+      ) 
+    )
+  `).single().match({ barcode })
 }
 
 async function getProductsFromDatabase() {

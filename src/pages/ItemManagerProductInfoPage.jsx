@@ -134,7 +134,7 @@ function ItemManagerProductInfoPage(props) {
             <div className='mb-2'>
               <button type='button' className='btn w-100 d-flex justify-content-center p-0' style={{ border: 0 }} onClick={onClickFileUpload}>
                 <picture className='d-grid justify-content-start'>
-                  <img src={itemImageUrl} className='object-fit-cover border rounded mx-auto mb-1' style={{ width: '300px', height: '300px' }} alt='Product image' />
+                  <img src={itemImageUrl} className='object-fit-contain border rounded mx-auto mb-1' style={{ width: '300px', height: '300px' }} alt='Product image' />
                   <figcaption style={{ fontSize: '0.8rem' }} className='text-start text-secondary'>Upload an image of the product</figcaption>
                 </picture>
               </button>
@@ -186,7 +186,7 @@ function ItemManagerProductInfoPage(props) {
               <div className='col'>
                 <div className='mb-2'>
                   <div className='form-floating'>
-                    <select id='categoryInput' className='form-select' name='item_type_id' required>
+                    <select id='categoryInput' className='form-select' name='item_type_id' defaultValue={product.item_type_id} required>
                       {
                         categories.map((category, i) => {
                           return (

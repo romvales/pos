@@ -35,8 +35,8 @@ function CashPaymentForm(props) {
             <input 
               onChange={onChange}
               type='number' 
-              name='amount_paid'
-              defaultValue={sales.amount_paid}
+              name='amount_paid'  
+              value={sales.amount_paid.toString()}
               className='remedyArrow form-control shadow-none' 
               id='amountPaid'
               required />
@@ -46,7 +46,9 @@ function CashPaymentForm(props) {
             isValid ?
               <p style={{ fontSize: '0.86rem' }} className='text-secondary'>Change: {pesoFormatter.format(sales.amount_paid-sales.total_due)}</p>
               :
-              <></>
+              <>
+              
+              </>
           }
         </div>
       </div>

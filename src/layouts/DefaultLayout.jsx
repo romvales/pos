@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 
 import { MenuAlt3Icon, CogIcon } from '@heroicons/react/outline'
 import { useEffect, useState } from 'react'
+import { MediaDevice } from '../components/MediaDevice'
 
 export { DefaultLayout }
 
@@ -32,16 +33,17 @@ function DefaultLayout(props) {
 
   return (
     <>
+      <MediaDevice></MediaDevice>
       <header className='sticky-top'>
         {
           isVisible ?
-            <div class='progress fixed-top bg-transparent'>
+            <div className='progress rounded-0 fixed-top bg-transparent'>
               <div 
-                class='progress-bar progress-bar-striped progress-bar-animated' 
+                className='progress-bar progress-bar-striped progress-bar-animated' 
                 role='progressbar' 
                 aria-valuenow='100' 
                 aria-valuemin='0' 
-                aria-valuemax='100' 
+                aria-valuemax='100'
                 style={{ width: '100%', height: '0.25rem' }}></div>
             </div>
             :
@@ -79,7 +81,7 @@ function DefaultLayout(props) {
           </div>
         </nav>
       </header>
-      <main className='mt-5'>
+      <main className='mt-5 position-relative'>
         {props.children}
       </main>
     </>

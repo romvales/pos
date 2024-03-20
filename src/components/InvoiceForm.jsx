@@ -2,12 +2,13 @@
 import { SelectorIcon, XIcon, CashIcon, PencilAltIcon, BookmarkIcon, PlusCircleIcon } from '@heroicons/react/outline'
 import { CashPaymentForm } from '../components/CashPaymentForm'
 import { useLoaderData } from 'react-router-dom'
-import { createRef, useEffect, useMemo, useState } from 'react'
+import { createRef, useContext, useEffect, useMemo, useState } from 'react'
 import { getFullName, pesoFormatter, saveSalesToDatabase } from '../actions'
 
 import { OrderSummaryItem } from '../components/OrderSummaryItem'
 import { NewContactPopup } from '../components/NewContactPopup'
 import { ContactSelector } from './ContactSelector'
+import { RootContext } from '../App'
 
 export { InvoiceForm }
 
@@ -81,6 +82,7 @@ function InvoiceForm(props) {
   const [sales, setSales] = props.salesState
   const persistPriceLevel = props.persistPriceLevel
   const actionType = props.actionType ?? ''
+  const originalState = structuredClone(sales)
 
   const formRef = createRef()
 
@@ -89,7 +91,15 @@ function InvoiceForm(props) {
     ev.preventDefault()
 
     sales.customer_id = selectedCustomer.id
-    sales.sales_status = 'paid'
+    
+    if (props.actionType != 'custom' || originalState.total_due <= sales.total_due) {
+      sales.invoice_type_id = 2 // CHARGE_INVOICE
+      sales.sales_status = 'paid'
+    } else if (originalState.total_due > sales.total_due) {
+      sales.invoice_type_id = 3 // SALES_RETURN
+      sales.sales_status = 'return'
+      console.log(sales)
+    }
 
     saveSalesToDatabase(sales)
       .then(() => {
@@ -119,6 +129,10 @@ function InvoiceForm(props) {
     setSales(clonedDefaultSale)
     setSelectedCustomer()
     formRef.current.reset()
+  }
+
+  const onClickRefund = () => {
+    alert('Oh no!')
   }
 
   // Sales recalculator whenever changes are detected
@@ -162,8 +176,8 @@ function InvoiceForm(props) {
   }, [])
 
   return (
-    <>
-      <form ref={formRef} className='row' onSubmit={onSubmit}>
+    <div>
+      <form ref={formRef} className='row position-sticky' style={{ top: '80px' }} onSubmit={onSubmit}>
         {
           selectedCustomer ?
             <section className='d-flex gap-3 py-3 rounded border shadow-sm mb-2 bg-white'>
@@ -237,36 +251,6 @@ function InvoiceForm(props) {
               </div>
             </section>
         }
-
-        <ul className='d-none list-unstyled d-flex gap-2 px-0 mb-2'>
-          {
-            staticInvoiceTypes.map(invoiceType => {
-              const checkboxRef = createRef()
-
-              const onChange = () => {
-                const cloneSales = structuredClone(sales)
-                cloneSales.invoice_type_id = invoiceType.id
-                setSales(cloneSales)
-              }
-
-              return (
-                <li key={invoiceType.code} className='col'>
-                  <div className='btn-group w-100' role='group' aria-label='Invoice type selector'>
-                    <input
-                      ref={checkboxRef}
-                      checked={sales.invoice_type_id == invoiceType.id}
-                      type='checkbox'
-                      className='btn-check'
-                      id={`invoiceType${invoiceType.code}`} autoComplete='off' onChange={onChange} />
-                    <label title={invoiceType.invoice_name} className='btn btn-outline-primary px-2' htmlFor={`invoiceType${invoiceType.code}`}>
-                      <span className='initialism text-capitalize fw-semibold'>{invoiceType.code}</span>
-                    </label>
-                  </div>
-                </li>
-              )
-            })
-          }
-        </ul>
 
         <div className='shadow-sm rounded py-3 mb-3 border bg-white'>
           <div className='mb-4'>
@@ -421,7 +405,24 @@ function InvoiceForm(props) {
               </button>
             </div>
             :
-            <></>
+            <div className='d-flex gap-2 p-0'>
+              <button
+                type='submit'
+                className='flex-grow-1 btn btn-primary btn-pill p-3 d-flex justify-content-center align-items-center gap-1'
+                disabled={!isValid}
+                onClick={() => {
+                  
+                }}>
+                <span className='fs-5'>Save Transaction</span>
+              </button>
+              <button
+                type='button'
+                className='flex-grow-1 btn btn-outline-secondary btn-pill p-3 d-flex justify-content-center align-items-center gap-1'
+                disabled={!isValid}
+                onClick={onClickRefund}>
+                <span className='fs-5'>Refund</span>
+              </button>
+            </div>
         }
       </form>
 
@@ -436,6 +437,6 @@ function InvoiceForm(props) {
       <ContactSelector
         contacts={contacts}
         updateSelection={setSelectedCustomer}></ContactSelector>
-    </>
+    </div>
   )
 }

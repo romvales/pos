@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { createPublicUrlForPath, pesoFormatter } from '../actions'
-import { useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
+import { RootContext } from '../App'
 
 export { AllProducts }
 
@@ -48,7 +49,7 @@ function AllProducts(props) {
                   <div className='col-4 border-end'>
                     <ProductLink>
                       <picture>
-                        <img src={itemImageUrl} className='object-fit-cover h-100 w-100 rounded-start' alt={`"${product.item_name}" sample photo`} />
+                        <img src={itemImageUrl} className='object-fit-contain h-100 w-100 rounded-start' alt={`"${product.item_name}" sample photo`} />
                       </picture>
                     </ProductLink>
                   </div>

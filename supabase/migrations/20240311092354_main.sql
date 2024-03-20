@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS public.items_price_levels (
   price_level_id INT NOT NULL REFERENCES public.price_levels(id) ON DELETE CASCADE
 );
 
-CREATE TYPE salesstatus AS ENUM('in-progress', 'paid', 'refunded');
+CREATE TYPE salesstatus AS ENUM('in-progress', 'paid', 'refunded', 'return');
 
 -- 
 DROP TABLE IF EXISTS public.sales;

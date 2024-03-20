@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { deleteSales, getFullName, pesoFormatter } from '../actions'
 import { TrashIcon, EyeIcon } from '@heroicons/react/outline'
 import { DefaultLayout } from '../layouts/DefaultLayout'
-import { capitalize, uniqBy } from 'lodash'
+import { uniqBy } from 'lodash'
 import { useState } from 'react'
 import { InvoiceForm, defaultSale } from '../components/InvoiceForm'
 import { SalesManagerPageDataLoader } from './loaders'
@@ -97,7 +97,9 @@ function SalesManagerPage(props) {
               salesState={[selectedSales, setSelectedSales]}
               recalculator={[recalculate, setRecalculate]}
               onSubmitSuccess={onSubmitSuccess}
-              onSaveSuccess={onSaveSuccess} />
+              onSaveSuccess={onSaveSuccess}
+              actionType={'custom'} />
+
           </section>
           <section className='col-xl-7 col-md-7'>
             <h1 className='fs-3 fw-semibold mb-4'>Recent transactions</h1>

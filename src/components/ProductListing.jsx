@@ -1,6 +1,7 @@
-import { createPublicUrlForPath, pesoFormatter } from '../actions'
-import { useState } from 'react'
+import { createPublicUrlForPath, getProductByBarcodeFromDatabase, pesoFormatter } from '../actions'
+import { useContext, useEffect, useState } from 'react'
 import { addProductToSelection, deselectProductFromSelection } from './InvoiceForm'
+import { RootContext } from '../App'
 
 export { ProductListing }
 
@@ -9,6 +10,7 @@ function ProductListing(props) {
   const [searchQuery, setSearchQuery] = useState('')
   const [sales, setSales] = props.salesState
   const [recalculate, setRecalculate] = props.recalculator
+  const rootContext = useContext(RootContext)
 
   const onClickAddItemToOrderSummary = (product) => {
     const productId = product.id
@@ -31,6 +33,31 @@ function ProductListing(props) {
     return patt.test(product.code) || patt.test(product.item_name)
   }
 
+  const sortFn = (a, b) => {
+    return a.item_quantity < b.item_quantity
+  }
+
+  useEffect(() => {
+    const barcodeText = rootContext.currentBarcodeText
+
+    if (barcodeText) {
+      getProductByBarcodeFromDatabase(barcodeText)
+        .then(res => {
+          const { data } = res
+          const productData = data
+          
+          console.log(res)
+
+          if (productData && productData.itemPriceLevels.at(0).priceLevel.price != 0) {
+            addProductToSelection(productData, [sales, setSales])
+            setRecalculate(!recalculate)
+            rootContext.setCurrentBarcodeText(null)
+          }
+        })
+    }
+    
+  }, [ rootContext.currentBarcodeText ])
+
   return (
     <div>
       <nav className='mb-3 row'>
@@ -42,7 +69,7 @@ function ProductListing(props) {
       <div className='container'>
         <ul className='list-unstyled row pb-0'>
           {
-            products.filter(filterFunc).map((product, i) => {
+            products.filter(filterFunc).sort(sortFn).map((product, i) => {
               const placeholderUrl = 'https://placehold.co/200?text=' + product.item_name
               let itemImageUrl = placeholderUrl
 
@@ -67,7 +94,7 @@ function ProductListing(props) {
                   role='button' key={i} className='d-flex col-xl-4 col-sm-6 p-1' style={{ cursor: product.item_quantity <= 0 ? 'not-allowed' : 'pointer' }} onClick={() => onClickAddItemToOrderSummary(product)}>
                   <div className={`border ${productHighlighted} shadow-sm h-100 w-100`} style={{ borderRadius: '0.45rem' }}>
                     <picture>
-                      <img style={{ height: '150px', filter: product.item_quantity <= 0 || defaultPriceLevel.priceLevel.price ==0 ? 'grayscale(100%)' : '' }} className='img-fluid rounded-top border-bottom w-100 object-fit-cover' src={itemImageUrl} alt='' />
+                      <img style={{ height: '150px', filter: product.item_quantity <= 0 || defaultPriceLevel.priceLevel.price ==0 ? 'grayscale(100%)' : '' }} className='img-fluid rounded-top border-bottom w-100 object-fit-contain' src={itemImageUrl} alt='' />
                     </picture>
                     <div className='px-3 py-2'>
                       <h3 title={product.item_name} className='p-0 m-0 mb-2' style={{ fontWeight: 600, fontSize: '1.05rem' }}>

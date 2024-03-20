@@ -1,19 +1,22 @@
 
-import { useState, useEffect, createRef } from 'react'
+import { useState, useEffect, createRef, useContext } from 'react'
 import { useLoaderData } from 'react-router-dom'
 import { upperFirst } from 'lodash'
 import { getDealerName, saveProductToDatabase, uploadFileToServer } from '../actions'
 import { XIcon } from '@heroicons/react/outline'
+import { RootContext } from '../App'
 
 export { NewProductForm }
 
 function NewProductForm(props) {
+  const rootContext = useContext(RootContext)
   const placeholderUrl = 'https://placehold.co/300'
   const categories = props.categories
   const refreshProducts = props.refreshProducts
   const [itemImageUrl, setItemImageUrl] = useState(placeholderUrl)
   const [productName, setProductName] = useState('')
   const [generatedUnitCode, setGeneratedUnitCode] = useState('')
+  const [focus, setFocus] = useState(false)
   const { staticDealers } = useLoaderData()
   const fileRef = createRef()
   const mapStaticDealersByDealerName = {}
@@ -51,6 +54,7 @@ function NewProductForm(props) {
         form.reset()
         setProductName('')
         setItemImageUrl(placeholderUrl)
+        rootContext.setCurrenctBarcodeText(null)
       })
       .catch()
   }
@@ -79,12 +83,12 @@ function NewProductForm(props) {
   }, [productName])
 
   return (
-    <div className='mb-2'>
-      <form className='d-grid' onSubmit={onSubmit}>
+    <div className='mb-2 position-sticky' style={{ top: '80px' }}>
+      <form className='d-grid' onSubmit={onSubmit} onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}>
         <div className='mb-2 position-relative'>
           <button type='button' className='btn w-100 d-flex justify-content-center p-0' style={{ border: 0 }} onClick={onClickFileUpload}>
             <picture className='d-grid justify-content-start'>
-              <img src={itemImageUrl} className='object-fit-cover border rounded mx-auto mb-1' style={{ width: '300px', height: '300px' }} alt='Product image' />
+              <img src={itemImageUrl} className='object-fit-contain border rounded mx-auto mb-1' style={{ width: '300px', height: '300px' }} alt='Product image' />
               <figcaption style={{ fontSize: '0.8rem' }} className='text-start text-secondary'>Upload an image of the product</figcaption>
             </picture>
           </button>
@@ -176,7 +180,7 @@ function NewProductForm(props) {
 
         <div className='mb-2'>
           <div className='form-floating'>
-            <input name='barcode' className='form-control' id='barcodeInput' />
+            <input name='barcode' defaultValue={rootContext.currentBarcodeText} className='form-control' id='barcodeInput' />
             <label htmlFor='barcodeInput'>Barcode</label>
           </div>
         </div>
