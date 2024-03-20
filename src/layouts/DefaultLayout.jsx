@@ -1,14 +1,24 @@
 
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
-import { MenuAlt3Icon, CogIcon } from '@heroicons/react/outline'
+import { MenuAlt3Icon } from '@heroicons/react/outline'
 import { useEffect, useState } from 'react'
 import { MediaDevice } from '../components/MediaDevice'
+import { RootContext } from '../App'
 
 export { DefaultLayout }
 
 function DefaultLayout(props) {
   const [isVisible, setVisiblity] = useState(true)
+  const [barcode, setBarcode] = useState()
+  const defaultState = {
+    currentBarcodeText: barcode,
+    setCurrentBarcodeText: setBarcode,
+
+    currentPageState: useState(0),
+    pageNumberState: useState(0),
+    itemCountState: useState(0),
+  }
 
   useEffect(() => {
     let scheduledVsibilityChange;
@@ -32,17 +42,17 @@ function DefaultLayout(props) {
 
 
   return (
-    <>
+    <RootContext.Provider value={defaultState}>
       <MediaDevice></MediaDevice>
       <header className='sticky-top'>
         {
           isVisible ?
             <div className='progress rounded-0 fixed-top bg-transparent'>
-              <div 
-                className='progress-bar progress-bar-striped progress-bar-animated' 
-                role='progressbar' 
-                aria-valuenow='100' 
-                aria-valuemin='0' 
+              <div
+                className='progress-bar progress-bar-striped progress-bar-animated'
+                role='progressbar'
+                aria-valuenow='100'
+                aria-valuemin='0'
                 aria-valuemax='100'
                 style={{ width: '100%', height: '0.25rem' }}></div>
             </div>
@@ -84,6 +94,6 @@ function DefaultLayout(props) {
       <main className='mt-5 position-relative'>
         {props.children}
       </main>
-    </>
+    </RootContext.Provider>
   )
 }

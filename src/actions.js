@@ -25,6 +25,11 @@ export {
   getDealers,
   getContacts,
 
+  // Counters
+  getSalesCountFromDatabase,
+  getContactsCountFromDatabase,
+  getProductsCountFromDatabase,
+
   deleteLocation,
   deleteContact,
   deleteProductCategory,
@@ -58,18 +63,35 @@ async function getLocationsFromDatabase() {
 
 async function getContactsFromDatabase(contactType) {
   if (!contactType) {
-    return DefaultClient.from('contacts').select().order('date_added', { ascending: false }).then(res => {
+    return DefaultClient.from('contacts')
+      .select()
+      .order('date_added', { ascending: false })
+      .range(0, 9)
+      .then(res => {
+        res.data = res.data.map(cleanContactInfo)
+        return res
+      })
+  }
+
+  return DefaultClient.from('contacts')
+    .select()
+    .match({
+      contact_type: contactType,
+    })
+    .range(0, 9)
+    .order('date_added', { ascending: false })
+    .then(res => {
       res.data = res.data.map(cleanContactInfo)
       return res
     })
+}
+
+async function getContactsCountFromDatabase(contactType) {
+  if (!contactType) {
+    return (await DefaultClient.from('contacts').select('id', { count: 'exact', head: true })).count ?? 0
   }
 
-  return DefaultClient.from('contacts').select().match({
-    contact_type: contactType,
-  }).order('date_added', { ascending: false }).then(res => {
-    res.data = res.data.map(cleanContactInfo)
-    return res
-  })
+  return (await DefaultClient.from('contacts').select('id', { count: 'exact', head: true }).match({ contact_type: contactType })).count ?? 0
 }
 
 async function getContactByIdFromDatabase(id) {
@@ -83,7 +105,14 @@ async function getProductCategoriesFromDatabase() {
 }
 
 async function getSalesFromDatabase(customSelect) {
-  return DefaultClient.from('sales').select(customSelect ?? '*').order('sales_date', { ascending: false })
+  return DefaultClient.from('sales')
+    .select(customSelect ?? '*')
+    .range(0, 18)
+    .order('sales_date', { ascending: false })
+}
+
+async function getSalesCountFromDatabase() {
+  return (await DefaultClient.from('sales').select('id', { count: 'exact', head: true })).count ?? 0
 }
 
 async function getSalesItemSelectionsFromDatabase(salesData) {
@@ -277,19 +306,25 @@ function getProductByBarcodeFromDatabase(barcode) {
   `).single().match({ barcode })
 }
 
-async function getProductsFromDatabase() {
-  return DefaultClient.from('items').select(`
-    *,
-    dealer:dealer_id(*),
-    category:item_type_id(*),
-    itemPriceLevels:items_price_levels(
-      price_level_id,
-      priceLevel:price_level_id(
-        level_name,
-        price
-      ) 
-    )
-  `)
+async function getProductsFromDatabase(pageNumber = 0, itemCount = 10) {
+  return DefaultClient.from('items')
+    .select(`
+      *,
+      dealer:dealer_id(*),
+      category:item_type_id(*),
+      itemPriceLevels:items_price_levels(
+        price_level_id,
+        priceLevel:price_level_id(
+          level_name,
+          price
+        ) 
+      )
+    `)
+    .range(pageNumber*(itemCount-1), itemCount*(pageNumber+1)-1)
+}
+
+async function getProductsCountFromDatabase() {
+  return (await DefaultClient.from('items').select('id', { count: 'exact', head: true })).count ?? 0
 }
 
 async function getCustomers() {

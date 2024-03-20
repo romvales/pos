@@ -63,6 +63,9 @@ export async function SalesManagerPageDataLoader() {
       *,
       product:item_id (
         *,
+        dealer:dealer_id(
+          *
+        ),
         itemPriceLevels:items_price_levels(
           price_level_id,
           priceLevel:price_level_id(
@@ -75,7 +78,6 @@ export async function SalesManagerPageDataLoader() {
   `)
     .then(res => {
       const { data } = res
-
       staticSales.push(...(data ?? []))
     })
 

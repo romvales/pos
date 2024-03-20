@@ -1,16 +1,19 @@
 import { Link, useLoaderData } from 'react-router-dom'
 import { useEffect } from 'react'
-import { deleteSales, getFullName, pesoFormatter } from '../actions'
+import { deleteSales, getFullName, getSalesCountFromDatabase, pesoFormatter } from '../actions'
 import { TrashIcon, EyeIcon } from '@heroicons/react/outline'
 import { DefaultLayout } from '../layouts/DefaultLayout'
 import { uniqBy } from 'lodash'
 import { useState } from 'react'
 import { InvoiceForm, defaultSale } from '../components/InvoiceForm'
 import { SalesManagerPageDataLoader } from './loaders'
+import { Paginator } from '../components/Paginator'
 
 export {
   SalesManagerPage,
 }
+
+const salesCount = await getSalesCountFromDatabase()
 
 function SalesManagerPage(props) {
   const { staticSales } = useLoaderData()
@@ -85,6 +88,7 @@ function SalesManagerPage(props) {
     cleanUpCollection(collectionSales)
   }, [])
 
+  console.log(salesCount)
   // @PAGE_URL: /sales
   return (
     <DefaultLayout>
@@ -105,9 +109,12 @@ function SalesManagerPage(props) {
             <h1 className='fs-3 fw-semibold mb-4'>Recent transactions</h1>
 
             <nav className='mb-3 row'>
-              <form>
+              <form className='col'>
                 <input value={searchQuery} className='form-control' placeholder='Search for a transaction...' onChange={ev => setSearchQuery(ev.target.value)} />
               </form>
+              <div className='col-auto'>
+                <Paginator totalCount={10} defaultItemCount={10}></Paginator>
+              </div>
             </nav>
 
             <table className='table table-sm'>

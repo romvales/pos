@@ -4,6 +4,7 @@ import { DefaultLayout } from '../layouts/DefaultLayout'
 import { useLoaderData } from 'react-router-dom'
 import { ProductListing } from '../components/ProductListing'
 import { InvoiceForm, defaultSale } from '../components/InvoiceForm'
+import { SalesRegisterPageDataLoader } from './loaders'
 
 export {
   SalesRegisterPage,
@@ -37,7 +38,8 @@ function SalesRegisterPage(props) {
             <InvoiceForm
               salesState={[sales, setSales]}
               recalculator={[recalculate, setRecalculate]}
-              onSubmitSuccess={onSubmitSuccess} />
+              onSubmitSuccess={onSubmitSuccess}
+              discardOnSuccess={true} />
           </section>
         </div>
       </div>

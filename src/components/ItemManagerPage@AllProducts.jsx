@@ -1,25 +1,44 @@
 import { Link } from 'react-router-dom'
-import { createPublicUrlForPath, pesoFormatter } from '../actions'
+import { createPublicUrlForPath, getProductsCountFromDatabase, getProductsFromDatabase, pesoFormatter } from '../actions'
 import { useContext, useEffect, useState } from 'react'
 import { RootContext } from '../App'
+import { Paginator } from './Paginator'
 
 export { AllProducts }
 
+const productsCount = await getProductsCountFromDatabase()
+
 function AllProducts(props) {
-  const products = props.products
-  
+  const rootContext = useContext(RootContext)
+
+  const [products, setProducts] = useState(props.products)
+  const [itemCount] = rootContext.itemCountState
+  const [currentPage] = rootContext.currentPageState
+
   const [searchQuery, setSearchQuery] = useState('')
   const filterFunc = (product) => {
     const patt = new RegExp(searchQuery)
     return patt.test(product.code) || patt.test(product.item_name)
   }
 
+  useEffect(() => {
+    getProductsFromDatabase(currentPage, itemCount)
+      .then(res => {
+        const { data } = res
+        if (data.length) setProducts(data)
+      })  
+      .catch()
+  }, [ currentPage, itemCount ])
+
   return (
     <div className='container'>
       <nav className='mb-3 row'>
-        <form>
+        <form className='col'>
           <input value={searchQuery} className='form-control' placeholder='Search for a product...' onChange={ev => setSearchQuery(ev.target.value)} />
         </form>
+        <div className='col-auto'>
+          <Paginator totalCount={productsCount} defaultItemCount={10} />
+        </div>
       </nav>
 
       <ul className='d-flex flex-wrap list-unstyled pb-0'>

@@ -3,7 +3,7 @@ import {
   MinusIcon,
   PlusIcon
 } from '@heroicons/react/outline'
-import { createPublicUrlForPath, pesoFormatter } from '../actions'
+import { createPublicUrlForPath, getDealerName, getFullName, pesoFormatter } from '../actions'
 import { useEffect, useState } from 'react'
 import { deselectProductFromSelection } from './InvoiceForm'
 
@@ -123,7 +123,7 @@ function OrderSummaryItem(props) {
               <h5 className='fs-6 fw-bold mb-0'>{productData.item_name}</h5>
             </li>
             <li className='mb-2'>
-              <span className='text-secondary' style={{ fontSize: '0.8rem' }}>Dealer Name</span>
+              <span className='text-secondary' style={{ fontSize: '0.8rem' }}>{productData.dealer.company_name ? productData.dealer.company_name : getFullName(productData.dealer)}</span>
             </li>
             <li className='d-flex gap-2 align-items-center'>
               <nav className='d-flex gap-1 align-items-center'>

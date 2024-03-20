@@ -19,7 +19,6 @@ function MediaDevice(props) {
   ])
 
   useEffect(() => {
-    const videoRef = document.querySelector('#videoRef')
     const videoInput = JSON.parse(localStorage.getItem('VIDEO_INPUT'))
 
     navigator.mediaDevices.getUserMedia({
@@ -31,19 +30,23 @@ function MediaDevice(props) {
       }
     })
       .then(stream => {
+        const videoRef = document.querySelector('#videoRef')
+        
         videoRef.srcObject = stream
-        videoRef.play()
+
         reader.decodeFromStream(stream, null, (e) => {
           if (e) {
             rootContext.setCurrentBarcodeText(e.getText())
           }
         })
+        
       })
+      .catch()
   }, [])
 
   return (
     <>
-      <video id='videoRef' disablePictureInPicture={true} className='fixed-bottom d-none' style={{ width: 256, height: 256 }} onSeeked={() => console.log(123)}></video>
+      <video id='videoRef' autoPlay={true} className='fixed-bottom d-none' style={{ width: 256, height: 256 }} onSeeked={() => console.log(123)}></video>
     </>
   )
 }

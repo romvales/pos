@@ -2,6 +2,7 @@
 import { TrashIcon } from '@heroicons/react/outline'
 import { getFullName } from '../actions'
 import { Link } from 'react-router-dom'
+import { Paginator } from './Paginator'
 
 export { ContactTableListing }
 
@@ -13,8 +14,8 @@ function ContactTableListing(props) {
   const onDeleteContact = props.onDeleteContact
   const selectedContacts = contacts[type]
     .filter(contact => new RegExp(searchQuery).test(getFullName(contact))) // Filters the contacts by search query
- 
-  return (  
+
+  return (
     <>
       <table className='table table-sm'>
         <thead>
@@ -82,8 +83,10 @@ function ContactTableListing(props) {
             })
           }
         </tbody>
-        <tfoot></tfoot>
       </table>
+      <nav className='mb-4'>
+        <Paginator className='pagination-sm' totalCount={10} defaultItemCount={10} />
+      </nav>
     </>
   )
 }
