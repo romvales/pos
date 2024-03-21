@@ -124,7 +124,7 @@ export async function ItemManagerPageDataLoader() {
     })
     .catch()
 
-  await getProductsFromDatabase()
+  await getProductsFromDatabase(0, 12)
     .then(res => {
       const { data } = res
       staticProducts.push(...data)

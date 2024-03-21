@@ -34,7 +34,11 @@ export const defaultSale = {
   payment_method: 'cash',
 
   //
-  selections: {},
+  selections: {
+
+    // @NOTE: Added so that we could delete selections.
+    toDelete: [],
+  },
   length: 0,
 }
 
@@ -53,52 +57,74 @@ export const addProductToSelection = (product, salesState) => {
     item_id: product.id,
     price_level_id: null,
     quantity: 1,
-
-    cost: /** product.item_cost */ itemPriceLevels[0].priceLevel.price,
-    price: /** product.item_cost */ itemPriceLevels[0].priceLevel.price,
+    cost: /** product.item_cost */ itemPriceLevels.at(0)?.priceLevel.price,
+    price: /** product.item_cost */ itemPriceLevels.at(0)?.priceLevel.price,
   }
-
 
   clone.length++
   setSales(clone)
 }
 
-export const deselectProductFromSelection = (id, salesState) => {
+export const deselectProductFromSelection = (id, originalState, salesState) => {
   const [sales, setSales] = salesState
 
   const clone = structuredClone(sales)
 
+  // If already an exsiting sales in the database, add the deselected selection to the selections.toDelete array
+  if (sales.id) {
+    
+    if (!clone.selections.toDelete) clone.selections.toDelete = []
+
+    clone.selections[id].deducted_quantity = originalState.selections[id].quantity
+    clone.selections.toDelete.push(clone.selections[id])
+  }
+
   delete clone.selections[id]
   clone.length--
+
   setSales(clone)
 }
 
 function InvoiceForm(props) {
-  const { staticInvoiceTypes, staticCustomers, staticLocations } = useLoaderData()
+  const { staticCustomers, staticLocations } = useLoaderData()
 
+  const rootContext = useContext(RootContext)
   const [contacts, setContacts] = useState(staticCustomers)
   const [recalculate, setRecalculate] = props.recalculator
   const [selectedCustomer, setSelectedCustomer] = props.selectedCustomerState ?? useState()
   const [sales, setSales] = props.salesState
   const persistPriceLevel = props.persistPriceLevel
+  const originalState = props.originalState
   const actionType = props.actionType ?? ''
-  const originalState = structuredClone(sales)
-
   const formRef = createRef()
+
+  const [itemCount] = rootContext.itemCountState
+  const [currentPage] = rootContext.currentPageState
 
   // Save the sales, order summary items (selections) to the database as PAID.
   const onSubmit = (ev) => {
     ev.preventDefault()
 
     sales.customer_id = selectedCustomer.id
-    
-    if (props.actionType != 'custom' || originalState.total_due <= sales.total_due) {
+
+    if (props.actionType != 'custom') {
       sales.invoice_type_id = 2 // CHARGE_INVOICE
       sales.sales_status = 'paid'
-    } else if (originalState.total_due > sales.total_due) {
-      sales.invoice_type_id = 3 // SALES_RETURN
-      sales.sales_status = 'return'
-      console.log(sales)
+    } else if (props.actionType == 'custom') {
+      console.log(originalState, sales)
+
+      if (originalState.total_due > sales.total_due) { // return
+        sales.invoice_type_id = 3 // SALES_RETURN
+        sales.sales_status = 'return'
+
+        for (const key of Object.keys(sales.selections)) {
+          sales.selections[key].deducted_quantity = originalState.selections[key].quantity - sales.selections[key].quantity
+        }
+
+      } else if (originalState.total_due < sales.total_due) {
+        sales.invoice_type_id = 2
+        sales.sales_status = 'paid'
+      }
     }
 
     saveSalesToDatabase(sales)
@@ -128,11 +154,21 @@ function InvoiceForm(props) {
 
     setSales(clonedDefaultSale)
     setSelectedCustomer()
-    formRef.current.reset()
+    if (formRef.current) formRef.current.reset()
   }
 
   const onClickRefund = () => {
-    alert('Oh no!')
+    const clonedSales = structuredClone(sales)
+    
+    clonedSales.invoice_type_id = 3
+    clonedSales.sales_status = 'refunded'
+
+    saveSalesToDatabase(clonedSales)
+      .then(() => {
+        if (props.onSaveSuccess) {
+          props.onSaveSuccess()
+        }
+      })
   }
 
   // Sales recalculator whenever changes are detected
@@ -144,12 +180,19 @@ function InvoiceForm(props) {
     clone.discount_amount = 0
     clone.tax_amount = 0
     clone.total_due = 0
+    clone.change_due = 0
 
     for (const selection of Object.values(sales.selections)) {
+      // @NOTE: Ignore the added selections.toDelete array
+      if (selection instanceof Array) {
+        continue
+      }
+
       clone.sub_total += selection.price
     }
 
-    clone.total_due = clone.sub_total + clone.tax_amount - clone.discount_amount
+    clone.total_due = (clone.sub_total + clone.tax_amount) - clone.discount_amount
+    clone.change_due = clone.amount_paid-clone.total_due
     setSales(clone)
   }
 
@@ -294,12 +337,18 @@ function InvoiceForm(props) {
             <ul className='d-flex flex-column gap-1 list-unstyled mb-0'>
               {
                 Object.values(sales.selections).sort(sortFn).map((selection, i) => {
+                  // @NOTE: Ignore the added selections.toDelete array
+                  if (selection instanceof Array) {
+                    return
+                  }
+
                   return (
                     <OrderSummaryItem
                       key={i}
                       persistPriceLevel={persistPriceLevel}
                       salesState={[sales, setSales]}
                       productData={selection.product}
+                      originalState={originalState}
                       recalculator={[recalculate, setRecalculate]}
                       selectedCustomer={selectedCustomer} />
                   )
@@ -409,10 +458,7 @@ function InvoiceForm(props) {
               <button
                 type='submit'
                 className='flex-grow-1 btn btn-primary btn-pill p-3 d-flex justify-content-center align-items-center gap-1'
-                disabled={!isValid}
-                onClick={() => {
-                  
-                }}>
+                disabled={!isValid}>
                 <span className='fs-5'>Save Transaction</span>
               </button>
               <button

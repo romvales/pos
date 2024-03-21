@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { DefaultLayout } from '../layouts/DefaultLayout'
 
 import { useLoaderData } from 'react-router-dom'
 import { ProductListing } from '../components/ProductListing'
 import { InvoiceForm, defaultSale } from '../components/InvoiceForm'
-import { SalesRegisterPageDataLoader } from './loaders'
+import { getProductsFromDatabase } from '../actions'
 
 export {
   SalesRegisterPage,
@@ -12,14 +12,12 @@ export {
 
 function SalesRegisterPage(props) {
   const { staticProducts } = useLoaderData()
-  const [products, setProducts] = useState(staticProducts)
+  const [products, setProducts] = useState()
   const [sales, setSales] = useState(structuredClone(defaultSale))
   const [recalculate, setRecalculate] = useState()
 
   const onSubmitSuccess = () => {
-    SalesRegisterPageDataLoader().then(({ staticProducts }) => {
-      setProducts(staticProducts)
-    })
+    setRecalculate(!recalculate)
   }
 
   // @PAGE_URL: /
@@ -30,8 +28,7 @@ function SalesRegisterPage(props) {
           <section className='col-xl-7 col-md-7'>
             <ProductListing
               recalculator={[recalculate, setRecalculate]}
-              salesState={[sales, setSales]}
-              products={products} />
+              salesState={[sales, setSales]} />
           </section>
 
           <section className='col-xl-4 col-md-5'>

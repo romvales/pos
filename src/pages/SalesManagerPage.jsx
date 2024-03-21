@@ -62,7 +62,11 @@ function SalesManagerPage(props) {
 
   const cleanUpCollection = (collections) => {
     const cleanedCollection = structuredClone(collections).map(sales => {
-      const selections = {}
+      const selections = {
+
+        // @NOTE: Added so that we could delete selections.
+        toDelete: [],
+      }
 
       // @NOTE: If selections is already transformed, don't try to retransform the sales' selections
       if (!(sales.selections instanceof Array)) {
@@ -71,9 +75,8 @@ function SalesManagerPage(props) {
 
       for (const selection of sales.selections) {
         const product = selection.product ?? {}
-
+        product.default_item_quantity = product.item_quantity
         product.item_quantity += selection.quantity
-
         selections[selection.product?.id] = selection
       }
 
@@ -88,7 +91,6 @@ function SalesManagerPage(props) {
     cleanUpCollection(collectionSales)
   }, [])
 
-  console.log(salesCount)
   // @PAGE_URL: /sales
   return (
     <DefaultLayout>
@@ -99,6 +101,7 @@ function SalesManagerPage(props) {
               persistPriceLevel={true}
               selectedCustomerState={[selectedCustomer, setSelectedCustomer]}
               salesState={[selectedSales, setSelectedSales]}
+              originalState={structuredClone(collectionSales.find(sales => sales.invoice_no == selectedSales.invoice_no))}
               recalculator={[recalculate, setRecalculate]}
               onSubmitSuccess={onSubmitSuccess}
               onSaveSuccess={onSaveSuccess}
@@ -200,6 +203,8 @@ function SalesManagerPage(props) {
                                   return <span className='badge text-bg-danger bg-opacity-75 p-2'>REFUND</span>
                                 case 'paid':
                                   return <span className='badge text-bg-success bg-opacity-75 p-2 text-uppercase'>PAID</span>
+                                case 'return':
+                                  return <span className='badge text-bg-secondary bg-opacity-75 p-2 text-uppercase'>RETURN</span>
                               }
                             })()
                           }

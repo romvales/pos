@@ -33,6 +33,7 @@ export {
   deleteLocation,
   deleteContact,
   deleteProductCategory,
+  deleteProductItemSelectionByIdFromDatabase,
   deleteProduct,
   deleteSales,
 
@@ -147,6 +148,10 @@ async function deleteProductCategory(categoryData) {
     .eq('id', categoryData.id)
 }
 
+async function deleteProductItemSelectionByIdFromDatabase(id) {
+  return DefaultClient.from('selections').delete().eq('id', id)
+}
+
 async function deleteProduct(product) {
   return DefaultClient.from('items')
     .delete({ count: 1 })
@@ -188,12 +193,7 @@ async function saveSalesToDatabase(sales) {
   delete clonedSales.selections
   delete clonedSales.length
 
-  // Just delete the sales from the database if its total is zero
-  if (clonedSales.total_due == 0) {
-    return deleteSales(clonedSales).catch()
-  }
-
-  return DefaultClient.from('sales').upsert(clonedSales, { onConflict: 'id' }).select()
+  return DefaultClient.from('sales').upsert(clonedSales, { onConflict: 'id' }).eq('id', clonedSales.id).select()
     .then(async res => {
       const { data } = res
 
@@ -201,6 +201,28 @@ async function saveSalesToDatabase(sales) {
       const toPerform = []
 
       if (sales.selections) {
+        // Delete all selections stored in sales.selections.toDelete
+        for (const selection of (sales.selections.toDelete) ?? []) {
+          const product = selection.product ?? {}
+
+          product.item_sold -= selection.deducted_quantity
+          product.item_quantity = product.default_item_quantity + selection.deducted_quantity
+
+          // Delete unrelated fields
+          delete product.category
+          delete product.dealer
+          delete product.itemPriceLevels
+          delete product.default_item_quantity
+
+          toPerform.push(
+            saveProductToDatabase(product),
+            deleteProductItemSelectionByIdFromDatabase(selection.id)
+          )
+        }
+
+        // Remove the unnecessary property from the sales.selections
+        delete sales.selections.toDelete
+
         // Save selected items (if any) to the database.
         for (const selection of Object.values(sales.selections)) {
           const toSave = structuredClone(selection)
@@ -211,25 +233,31 @@ async function saveSalesToDatabase(sales) {
           if (savedSales.sales_status == 'paid') {
             product.item_sold += toSave.quantity
             product.item_quantity -= toSave.quantity
-
-            if (!product.id) continue
-
-            // Delete unrelated fields
-            delete product.category
-            delete product.dealer
-            delete product.itemPriceLevels
-
-            toPerform.push(saveProductToDatabase(product))
+          } else if (savedSales.sales_status == 'refunded') {
+            product.item_sold -= toSave.quantity
+            product.item_quantity = product.default_item_quantity + toSave.quantity
+          } else if (savedSales.sales_status == 'return') {
+            product.item_sold -= toSave.deducted_quantity
+            product.item_quantity = product.default_item_quantity + toSave.deducted_quantity
           }
 
           // Delete unrelated fields
+          delete product.category
+          delete product.dealer
+          delete product.itemPriceLevels
+          delete product.default_item_quantity
+
+          if (product.id) {
+            toPerform.push(saveProductToDatabase(product))
+          }
+
+          // Delete unnecessary fields
+          delete toSave.deducted_quantity
           delete toSave.product
           delete toSave.item_index
           delete toSave.item
 
-          toPerform.push(
-            DefaultClient.from('selections').upsert(toSave, { onConflict: 'id' })
-          )
+          toPerform.push(DefaultClient.from('selections').upsert(toSave, { onConflict: 'id' }))
         }
 
       }

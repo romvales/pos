@@ -23,10 +23,12 @@ function ProductListing(props) {
     const productId = product.id
     const itemPriceLevels = [...product.itemPriceLevels].sort((a, b) => a.priceLevel.level_name > b.priceLevel.level_name)
 
-    if (product.item_quantity <= 0 || itemPriceLevels.at(0)?.priceLevel.price == 0) return
+    if (product.item_quantity <= 0 || !itemPriceLevels.at(0) || itemPriceLevels.at(0)?.priceLevel.price == 0) {
+      return
+    }
 
     if (sales.selections[productId]) {
-      deselectProductFromSelection(productId, [sales, setSales])
+      deselectProductFromSelection(productId, null, [sales, setSales])
       setRecalculate(!recalculate)
     } else {
       addProductToSelection(product, [sales, setSales])
@@ -69,7 +71,7 @@ function ProductListing(props) {
         if (data.length) setProducts(data)
       })
       .catch()
-  }, [ itemCount, currentPage ])
+  }, [ itemCount, currentPage, recalculate ])
 
   return (
     <div>
@@ -85,7 +87,7 @@ function ProductListing(props) {
       <div className='container'>
         <ul className='list-unstyled row pb-0'>
           {
-            products.filter(filterFunc).sort(sortFn).map((product, i) => {
+            products.map((product, i) => {
               const placeholderUrl = 'https://placehold.co/200?text=' + product.item_name
               let itemImageUrl = placeholderUrl
 

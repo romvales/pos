@@ -27,6 +27,7 @@ function OrderSummaryItem(props) {
 
   const selection = sales.selections[productData.id]
   const selectedCustomer = props.selectedCustomer
+  const originalSalesState = props.originalState
   const persistPriceLevel = props.persistPriceLevel ?? false
   const selectedCustomerPriceLevel = selectedCustomer?.price_level
 
@@ -36,7 +37,7 @@ function OrderSummaryItem(props) {
 
   const checkValue = () => {
     if (selection.quantity === 0) {
-      deselectProductFromSelection(productData.id, props.salesState)
+      deselectProductFromSelection(productData.id, originalSalesState, props.salesState)
       setRecalculate(!recalculate)
       return 0
     } else if (productData.item_quantity-selection.quantity < 0) {
@@ -53,7 +54,6 @@ function OrderSummaryItem(props) {
   }
 
   const onClickUsePriceLevel = () => {
-    
     if (selection.price_level_id == null) {
       selection.price_level_id = selectedPriceLevel?.price_level_id
     } else {

@@ -11,7 +11,7 @@ const productsCount = await getProductsCountFromDatabase()
 function AllProducts(props) {
   const rootContext = useContext(RootContext)
 
-  const [products, setProducts] = useState(props.products)
+  const [products, setProducts] = useState(props.products ?? [])
   const [itemCount] = rootContext.itemCountState
   const [currentPage] = rootContext.currentPageState
 
@@ -37,7 +37,7 @@ function AllProducts(props) {
           <input value={searchQuery} className='form-control' placeholder='Search for a product...' onChange={ev => setSearchQuery(ev.target.value)} />
         </form>
         <div className='col-auto'>
-          <Paginator totalCount={productsCount} defaultItemCount={10} />
+          <Paginator totalCount={productsCount} defaultItemCount={12} />
         </div>
       </nav>
 
