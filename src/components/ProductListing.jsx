@@ -7,7 +7,7 @@ import { Paginator } from './Paginator'
 
 export { ProductListing }
 
-const productsCount = await getProductsCountFromDatabase()
+const productsCount = (await getProductsCountFromDatabase()).data
 
 function ProductListing(props) {
   const [products, setProducts] = useState(props.products ?? [])
@@ -65,6 +65,8 @@ function ProductListing(props) {
   }, [rootContext.currentBarcodeText])
 
   useEffect(() => {
+    if (itemCount < 10) return
+
     getProductsFromDatabase(currentPage, itemCount)
       .then(res => {
         const { data } = res
@@ -99,7 +101,7 @@ function ProductListing(props) {
               }
 
               // Puts a border to a selected product in the product list
-              const productHighlighted = sales.selections[product.id] != null ? 'border-primary border-2 border-opacity-75' : ''
+              const productHighlighted = sales.selections[product.id] != null ? 'productSelected' : ''
 
               const defaultPriceLevel = itemPriceLevels.at(0) ?? {
                 priceLevel: {
@@ -116,9 +118,9 @@ function ProductListing(props) {
                     </picture>
                     <div className='px-3 py-2'>
                       <h3 title={product.item_name} className='p-0 m-0 mb-2' style={{ fontWeight: 600, fontSize: '1.05rem' }}>
-                        {pesoFormatter.format(defaultPriceLevel.priceLevel.price)} <span style={{ fontSize: '0.9rem' }} className='text-secondary fw-normal'>({pesoFormatter.format(product.item_cost)})</span>
+                        <span className='text-opacity-80'>{pesoFormatter.format(defaultPriceLevel.priceLevel.price)}</span> <span style={{ fontSize: '0.9rem' }} className='text-secondary fw-normal'>({pesoFormatter.format(product.item_cost)})</span>
                       </h3>
-                      <h3 title={product.item_name} style={{ fontSize: '0.95rem' }} className='p-0 m-0 text-secondary fw-semibold'>
+                      <h3 title={product.item_name} style={{ fontSize: '0.95rem' }} className={`p-0 m-0 mb-1 ${ product.item_quantity <= 0 || defaultPriceLevel.priceLevel.price == 0 ? 'text-secondary' : '' } fw-semibold`}>
                         {product.item_name}
                       </h3>
                       <dl className='fw-normal m-0'>
@@ -128,7 +130,9 @@ function ProductListing(props) {
                         </dd>
                         <dt className='d-none'>Remaining stock</dt>
                         <dd className='mb-0'>
-                          <p className={`mb-0 ${product.item_quantity <= 0 ? 'text-danger' : 'text-secondary'}`} style={{ fontSize: '0.8rem' }}>Stock: {product.item_quantity}</p>
+                          <p className={`mb-0 text-secondary`} style={{ fontSize: '0.8rem' }}>
+                            <span className={`mr-1 ${product.item_quantity <= 0 ? 'text-danger' : ''}`}>Stock: {product.item_quantity}</span> (Sold: { product.item_sold })
+                          </p>
                         </dd>
                       </dl>
                     </div>

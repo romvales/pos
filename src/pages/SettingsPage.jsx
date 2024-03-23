@@ -44,7 +44,7 @@ function SettingsPage(props) {
               </div>
               <div className='col-10'>
                 <div className='form-floating'>
-                  <input name='server_url' className='form-control' id='serverUrlInput' required defaultValue={defaults.server_url} />
+                  <input name='server_url' className='form-control' id='serverUrlInput' defaultValue={defaults.server_url} />
                   <label htmlFor='serverUrlInput' className='form-label'>(e.g. https://despos-xxxx-xxxx-xxxx.romvales.com)</label>
                 </div>
               </div>
@@ -55,7 +55,7 @@ function SettingsPage(props) {
               </div>
               <div className='col-10'>
                 <div className='form-floating'>
-                  <input name='server_token' type='password' className='form-control' id='serverTokenInput' required defaultValue={defaults.server_token} />
+                  <input name='server_token' type='password' className='form-control' id='serverTokenInput' defaultValue={defaults.server_token} />
                   <label htmlFor='serverTokenInput' className='form-label'>Put the private token provided to you here</label>
                 </div>
               </div>

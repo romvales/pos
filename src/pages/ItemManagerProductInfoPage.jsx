@@ -2,8 +2,9 @@ import { useLoaderData, useNavigate } from 'react-router-dom'
 import { DefaultLayout } from '../layouts/DefaultLayout'
 import { XIcon } from '@heroicons/react/outline'
 import { createPublicUrlForPath, deleteProduct, getDealerName, saveProductToDatabase, uploadFileToServer } from '../actions'
-import { createRef, useEffect, useState } from 'react'
+import { createRef, useContext, useEffect, useState } from 'react'
 import { upperFirst } from 'lodash'
+import JSBarcode from 'jsbarcode'
 import { ManageProductCategories } from '../components/ManageProductCategories'
 
 export {
@@ -92,7 +93,7 @@ function ItemManagerProductInfoPage(props) {
   const onDeleteProduct = () => {
     deleteProduct(product)
       .then(() => {
-        navigate({ pathname: '/products' })
+        navigate({ pathname: `/products` })
       })
   }
 
@@ -115,6 +116,8 @@ function ItemManagerProductInfoPage(props) {
   }
 
   useEffect(() => {
+    JSBarcode('.barcode').init()
+
     if (product.item_image_url.length) setItemImageUrl(createPublicUrlForPath(product.item_image_url))
 
     // When the price levels of a product is empty, add default price levels
@@ -152,6 +155,9 @@ function ItemManagerProductInfoPage(props) {
               }
               <input ref={fileRef} name='item_image' type='file' className='d-none' accept='image/*' onChange={onChangeFileUpload} />
             </div>
+            {
+              product.barcode ? <svg className='barcode' data-format='EAN13' data-value={product.barcode} data-textmargin={0}></svg> : <></>
+            }
           </div>
 
           <div className='flex-grow-1'>

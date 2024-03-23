@@ -6,12 +6,12 @@ import { Paginator } from './Paginator'
 
 export { AllProducts }
 
-const productsCount = await getProductsCountFromDatabase()
+const productsCount = (await getProductsCountFromDatabase()).data
 
 function AllProducts(props) {
   const rootContext = useContext(RootContext)
 
-  const [products, setProducts] = useState(props.products ?? [])
+  const [products, setProducts] = useState(props.products)
   const [itemCount] = rootContext.itemCountState
   const [currentPage] = rootContext.currentPageState
 
@@ -22,6 +22,8 @@ function AllProducts(props) {
   }
 
   useEffect(() => {
+    if (itemCount < 10) return
+
     getProductsFromDatabase(currentPage, itemCount)
       .then(res => {
         const { data } = res
@@ -29,6 +31,10 @@ function AllProducts(props) {
       })  
       .catch()
   }, [ currentPage, itemCount ])
+
+  useEffect(() => {
+    setProducts(props.products)
+  }, [ props.products ])
 
   return (
     <div className='container'>

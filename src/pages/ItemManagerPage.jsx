@@ -19,11 +19,11 @@ function ItemManagerPage(props) {
   
   const [activeTabView, setActiveTabView] = useState('all')
   
-  const refreshProducts = () => {
-    getProductsFromDatabase()
+  const refreshProducts = (pageNumber, itemCount) => {
+    getProductsFromDatabase(pageNumber, itemCount)
       .then(res => {
         const { data } = res
-        setProducts(data)
+        if (data.length) setProducts(data)
       })
   }
 

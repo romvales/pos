@@ -21,6 +21,9 @@ function NewProductForm(props) {
   const fileRef = createRef()
   const mapStaticDealersByDealerName = {}
 
+  const [currentPage] = rootContext.currentPageState
+  const [itemCount] = rootContext.itemCountState
+
   for (const dealer of staticDealers) {
     mapStaticDealersByDealerName[getDealerName(dealer)] = dealer
   }
@@ -50,11 +53,11 @@ function NewProductForm(props) {
 
     saveProductToDatabase(productData)
       .then(() => {
-        refreshProducts()
+        refreshProducts(currentPage, itemCount)
         form.reset()
         setProductName('')
         setItemImageUrl(placeholderUrl)
-        rootContext.setCurrenctBarcodeText(null)
+        if (rootContext.setCurrenctBarcodeText) rootContext.setCurrenctBarcodeText(null)
       })
       .catch()
   }

@@ -111,8 +111,6 @@ function InvoiceForm(props) {
       sales.invoice_type_id = 2 // CHARGE_INVOICE
       sales.sales_status = 'paid'
     } else if (props.actionType == 'custom') {
-      console.log(originalState, sales)
-
       if (originalState.total_due > sales.total_due) { // return
         sales.invoice_type_id = 3 // SALES_RETURN
         sales.sales_status = 'return'
@@ -240,7 +238,7 @@ function InvoiceForm(props) {
                   </li>
                 </ul>
               </div>
-              <div className='d-grid flex-column gap-1 align-items-center'>
+              <div className='d-flex flex-column gap-1 align-items-start'>
                 <button
                   type='button'
                   className='btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center'
@@ -251,7 +249,7 @@ function InvoiceForm(props) {
                 </button>
                 <button
                   type='button'
-                  className='btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center'
+                  className='w-100  btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center'
                   data-bs-toggle='modal'
                   data-bs-target='#addContact'>
                   <PencilAltIcon width={18} />
@@ -274,7 +272,7 @@ function InvoiceForm(props) {
                   </li>
                 </ul>
               </div>
-              <div className='d-grid flex-column gap-1 align-items-center'>
+              <div className='d-flex flex-column gap-1 align-items-start'>
                 <button
                   type='button'
                   className='btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center'
@@ -285,7 +283,7 @@ function InvoiceForm(props) {
                 </button>
                 <button
                   type='button'
-                  className='btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center'
+                  className='w-100 btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center'
                   data-bs-toggle='modal'
                   data-bs-target='#addContact'>
                   <PlusCircleIcon width={18} />
@@ -299,8 +297,8 @@ function InvoiceForm(props) {
           <div className='mb-4'>
             <div className='d-flex mb-1 justify-content-between'>
               <div>
-                <h3 className='fs-5 m-0 fw-bold mb-1 text-capitalize'>Order Summary</h3>
-                <p style={{ fontSize: '0.8rem' }} className='text-secondary'>Invoice#{sales.invoice_no}</p>
+                <h3 className='fs-5 m-0 fw-bold text-capitalize'>Order Summary</h3>
+                <p style={{ fontSize: '0.9rem' }} className='text-secondary'>Invoice#{sales.invoice_no}</p>
               </div>
               <nav className=''>
                 <ul className='d-flex gap-2 list-unstyled p-0'>
@@ -363,7 +361,7 @@ function InvoiceForm(props) {
                 <dt className='text-secondary fw-semibold'>
                   Subtotal
                 </dt>
-                <dd>
+                <dd className='mb-0'>
                   {pesoFormatter.format(sales.sub_total)}
                 </dd>
               </div>
@@ -372,7 +370,7 @@ function InvoiceForm(props) {
                 <dt className='text-secondary fw-semibold'>
                   Tax
                 </dt>
-                <dd>
+                <dd className='mb-0 text-secondary'>
                   {pesoFormatter.format(sales.tax_amount)}
                 </dd>
               </div>
@@ -381,7 +379,7 @@ function InvoiceForm(props) {
                 <dt className='text-secondary fw-semibold'>
                   Discount
                 </dt>
-                <dd>
+                <dd className='mb-0 text-secondary'>
                   {pesoFormatter.format(sales.discount_amount)}
                 </dd>
               </div>
@@ -400,7 +398,7 @@ function InvoiceForm(props) {
           </div>
 
           <fieldset className=''>
-            <label htmlFor='' className='fs-6 fw-semibold mb-3 text-secondary'>Payment Method</label>
+            <label htmlFor='' className='fs-6 fw-semibold mb-1 text-secondary'>Payment Options</label>
             <div className='row'>
               <div className='col'>
                 <div className=''>

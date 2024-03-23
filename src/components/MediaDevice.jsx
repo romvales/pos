@@ -39,14 +39,13 @@ function MediaDevice(props) {
             rootContext.setCurrentBarcodeText(e.getText())
           }
         })
-        
       })
       .catch()
   }, [])
 
   return (
     <>
-      <video id='videoRef' autoPlay={true} className='fixed-bottom d-none' style={{ width: 256, height: 256 }} onSeeked={() => console.log(123)}></video>
+      <video id='videoRef' autoPlay={true} className='fixed-bottom d-none' style={{ width: 256, height: 256 }}></video>
     </>
   )
 }

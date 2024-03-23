@@ -32,15 +32,15 @@ function OrderSummaryItem(props) {
   const selectedCustomerPriceLevel = selectedCustomer?.price_level
 
   // @NOTE: Instead of using the unit cost of a product, we'll revert to the price level 1.
-  const itemPriceLevels = [ ...productData.itemPriceLevels ].sort((a, b) => a.priceLevel.level_name > b.priceLevel.level_name)
-  const selectedPriceLevel = itemPriceLevels[selectedCustomerPriceLevel-1]
+  const itemPriceLevels = [...productData.itemPriceLevels].sort((a, b) => a.priceLevel.level_name > b.priceLevel.level_name)
+  const selectedPriceLevel = itemPriceLevels[selectedCustomerPriceLevel - 1]
 
   const checkValue = () => {
     if (selection.quantity === 0) {
       deselectProductFromSelection(productData.id, originalSalesState, props.salesState)
       setRecalculate(!recalculate)
       return 0
-    } else if (productData.item_quantity-selection.quantity < 0) {
+    } else if (productData.item_quantity - selection.quantity < 0) {
       selection.quantity = productData.item_quantity
     } else if (Number.isNaN(selection.quantity)) {
       selection.quantity = 1
@@ -86,7 +86,7 @@ function OrderSummaryItem(props) {
     }
 
     selection.cost = selectionPrice
-    selection.price = selection.quantity*selectionPrice
+    selection.price = selection.quantity * selectionPrice
 
     clone.selections[productData.id] = selection
 
@@ -97,83 +97,85 @@ function OrderSummaryItem(props) {
   const placeholderUrl = `https://placehold.co/64?text=${productData.item_name}`
   let itemImageUrl = placeholderUrl
 
-  if (productData.item_image_url.length) 
+  if (productData.item_image_url.length)
     itemImageUrl = createPublicUrlForPath(productData.item_image_url)
 
-  useEffect(() => { 
+  useEffect(() => {
     updateSelectionValues()
-    
+
     if (persistPriceLevel) selection.price_level_id = null
-  }, [ selectedCustomer ])
+  }, [selectedCustomer])
 
   return (
     <li>
-      <div className='d-flex gap-3 border rounded p-3'>
-        <div>
-          <picture>
-            <img 
-              style={{ width: '64px', height: '64px' }} 
-              src={itemImageUrl} 
-              className={`border rounded object-fit-cover`} alt={'Product thumbnail'} />
-          </picture>
-        </div>
-        <div className='flex-grow-1'>
-          <ul className='list-unstyled mb-2'>
-            <li>
-              <h5 className='fs-6 fw-bold mb-0'>{productData.item_name}</h5>
-            </li>
-            <li className='mb-2'>
-              <span className='text-secondary' style={{ fontSize: '0.8rem' }}>{productData.dealer.company_name ? productData.dealer.company_name : getFullName(productData.dealer)}</span>
-            </li>
-            <li className='d-flex gap-2 align-items-center'>
-              <nav className='d-flex gap-1 align-items-center'>
-                <div>
-                  <button type='button' className='btn btn-outline-secondary rounded-circle p-1 btn-sm d-grid align-items-center' onClick={() => onClickIncrementBy(-1)}>
-                    <MinusIcon width={12} />
-                  </button>
-                </div>
-
-                <input
-                  type='number' 
-                  value={selection.quantity}
-                  className='remedyArrow form-control form-control-sm shadow-none text-center'
-                  onChange={ev => onChangeSelection(ev.target.valueAsNumber)}
-                  style={{ width: '2.5rem' }} />
-
-                <div>
-                  <button type='button' className='btn btn-outline-secondary rounded-circle p-1 btn-sm d-grid align-items-center' onClick={() => onClickIncrementBy(1)}>
-                    <PlusIcon width={12} />
-                  </button>
-                </div>
-              </nav>
-              
-              <div>
-                <span className='text-secondary' style={{ fontSize: '0.8rem' }}>Stock left: {productData.item_quantity-selection.quantity}</span>
-              </div>
-            </li>
-          </ul>
-          {
-          itemPriceLevels?.length && selectedCustomerPriceLevel && selectedPriceLevel?.priceLevel?.price && selectedCustomerPriceLevel != 1 ?
-            <button type='button' className='btn btn-outline-primary bg-white text-primary btn-sm' onClick={() => onClickUsePriceLevel()}>
-              {
-                selection.price_level_id != null ?
-                  `Revert`  
-                  :
-                  `Use ${pesoFormatter.format(selectedPriceLevel?.priceLevel?.price)} (Lvl. ${selectedCustomerPriceLevel})`
-              }
-            </button>
-            :
-            <></>
-          }
-
-        </div>
-        <div className='d-flex flex-column justify-content-between align-items-end'>
-          <div className=''>
-            <output className='text-secondary'>{pesoFormatter.format(selection.cost)}</output>
+      <div className='d-flex flex-column border rounded px-3 pt-3 pb-2 align-items-end'>
+        <div className='d-flex'>
+          <div>
+            <picture>
+              <img
+                style={{ width: '48px', height: '48px' }}
+                src={itemImageUrl}
+                className={`border rounded object-fit-cover`} alt={'Product thumbnail'} />
+            </picture>
           </div>
-          <div className=''>
-            <output className='fw-bold'>{pesoFormatter.format(selection.price)}</output>
+          <div className='flex-grow-1 px-2'>
+            <ul className='list-unstyled'>
+              <li>
+                <h5 className='fs-6 fw-semibold mb-0'>{productData.item_name}</h5>
+              </li>
+              <li className='mb-2'>
+                <p className='text-secondary' style={{ fontSize: '0.8rem' }}>
+                  {productData.code} (Stock: {productData.item_quantity})
+                </p>
+              </li>
+              <li className='d-flex gap-2 align-items-center'>
+                <nav className='d-flex gap-1 align-items-center'>
+                  <div>
+                    <button type='button' className='btn btn-outline-secondary rounded-circle p-1 btn-sm d-grid align-items-center' onClick={() => onClickIncrementBy(-1)}>
+                      <MinusIcon width={12} />
+                    </button>
+                  </div>
+
+                  <input
+                    type='number'
+                    value={selection.quantity.toString()}
+                    className='remedyArrow form-control form-control-sm shadow-none text-center'
+                    onChange={ev => onChangeSelection(ev.target.valueAsNumber)}
+                    style={{ width: '2rem' }} />
+
+                  <div>
+                    <button type='button' className='btn btn-outline-secondary rounded-circle p-1 btn-sm d-grid align-items-center' onClick={() => onClickIncrementBy(1)}>
+                      <PlusIcon width={12} />
+                    </button>
+                  </div>
+                </nav>
+              </li>
+            </ul>
+
+            {
+              itemPriceLevels?.length && selectedCustomerPriceLevel && selectedPriceLevel?.priceLevel?.price && selectedCustomerPriceLevel != 1 ?
+                <button type='button' className='btn btn-outline-primary bg-white text-primary btn-sm' onClick={() => onClickUsePriceLevel()}>
+                  {
+                    selection.price_level_id != null ?
+                      `Revert`
+                      :
+                      `Use ${pesoFormatter.format(selectedPriceLevel?.priceLevel?.price)} (Lvl. ${selectedCustomerPriceLevel})`
+                  }
+                </button>
+                :
+                <></>
+            }
+
           </div>
+
+          <div className='d-flex flex-column justify-content-between align-items-end'>
+            <div className=''>
+              <output className='text-secondary'>{pesoFormatter.format(selection.cost)}</output>
+            </div>
+          </div>
+        </div>
+        <div className=''>
+          <output className='fw-bold'>{pesoFormatter.format(selection.price)}</output>
         </div>
       </div>
     </li>

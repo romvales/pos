@@ -12,7 +12,7 @@ export {
 
 function SalesRegisterPage(props) {
   const { staticProducts } = useLoaderData()
-  const [products, setProducts] = useState()
+  const [products] = useState(staticProducts)
   const [sales, setSales] = useState(structuredClone(defaultSale))
   const [recalculate, setRecalculate] = useState()
 
@@ -25,13 +25,14 @@ function SalesRegisterPage(props) {
     <DefaultLayout>
       <div className='container mx-auto'>
         <div className='row'>
-          <section className='col-xl-7 col-md-7'>
+          <section className='col-xl-8 col-md-7'>
             <ProductListing
               recalculator={[recalculate, setRecalculate]}
-              salesState={[sales, setSales]} />
+              salesState={[sales, setSales]}
+              products={products} />
           </section>
 
-          <section className='col-xl-4 col-md-5'>
+          <section className='col-xl-3 col-md-5'>
             <InvoiceForm
               salesState={[sales, setSales]}
               recalculator={[recalculate, setRecalculate]}

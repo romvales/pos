@@ -11,13 +11,13 @@ function Paginator(props) {
   const [itemCount, setItemCount] = rootContext.itemCountState
   const [currentPage, setCurrentPage] = rootContext.currentPageState
 
-  const totalPages = useMemo(() => Math.ceil(totalCount/itemCount), [ pageNumber, itemCount ])
+  const totalPages = useMemo(() => Math.ceil(totalCount / itemCount), [pageNumber, itemCount])
 
   useEffect(() => {
     setItemCount(props.defaultItemCount)
   })
 
-  return (
+  return totalPages != 0 ?
     <ul className={`pagination mb-0 ${props.className}`.trim()}>
       <li className={`page-item ${currentPage == 0 ? 'disabled' : ''}`}>
         <button type='button' className='page-link' onClick={() => setCurrentPage(currentPage - 1)}>
@@ -28,7 +28,7 @@ function Paginator(props) {
         Array.from(new Array(totalPages < 3 ? totalPages : 3)).map((_, i) => {
           return (
             <li className={`page-item ${i - currentPage == 0 ? 'active' : ''}`} key={i}>
-              <a className='page-link' href='#'>{i + 1}</a>
+              <button className='page-link' onClick={() => setCurrentPage(i)}>{i + 1}</button>
             </li>
           )
         })
@@ -39,5 +39,6 @@ function Paginator(props) {
         </button>
       </li>
     </ul>
-  )
+    :
+    <></>
 }

@@ -73,10 +73,7 @@ function DefaultLayout(props) {
 
             <div className='collapse navbar-collapse justify-content-between' id='navbarNav'>
               <ul className='navbar-nav'>
-                <li className='nav-item'>
-                  <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} aria-current='page' to={{ pathname: '/sales' }}>Transactions</Link>
-                </li>
-                <li className='nav-item'>
+                <li className='nav-item active'>
                   <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} to={{ pathname: '/products' }}>Products</Link>
                 </li>
                 <li className='nav-item'>
@@ -84,6 +81,9 @@ function DefaultLayout(props) {
                 </li>
                 <li className='nav-item'>
                   <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} to={{ pathname: '/settings' }}>Settings</Link>
+                </li>
+                <li className='nav-item'>
+                  <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} aria-current='page' to={{ pathname: '/sales' }}>Statistics</Link>
                 </li>
               </ul>
             </div>

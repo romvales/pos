@@ -75,17 +75,17 @@ function ContactManagerPage(props) {
         switch (type) {
         case 'customers':
           await getCustomers().then(customers => {
-            clonedContacts.customers = customers
+            clonedContacts.customers = customers.data
           })
             .catch()
         case 'staffs':
           await getStaffs().then(staffs => {
-            clonedContacts.staffs = staffs
+            clonedContacts.staffs = staffs.data
           })
             .catch()
         case 'dealers':
           await getDealers().then(dealers => {
-            clonedContacts.dealers = dealers
+            clonedContacts.dealers = dealers.data
           })
             .catch()
         }

@@ -23,7 +23,7 @@ function CashPaymentForm(props) {
       <div className='flex-grow-1'>
         <ul className='list-unstyled mb-2'>
           <li>
-            <h4 className='fs-6 fw-semibold mb-1'>Cash Payment</h4>
+            <h4 className='fs-6 fw-semibold mb-0'>Cash Payment</h4>
           </li>
           <li>
             <span style={{ fontSize: '0.8rem' }} className='text-secondary'>Enter the tendered cash amount by the customer.</span>
