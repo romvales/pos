@@ -21,7 +21,7 @@ function MediaDevice(props) {
   useEffect(() => {
     const videoInput = JSON.parse(localStorage.getItem('VIDEO_INPUT'))
 
-    navigator.mediaDevices.getUserMedia({
+    navigator.mediaDevices?.getUserMedia({
       audio: false,
       video: {
         width: 1024,

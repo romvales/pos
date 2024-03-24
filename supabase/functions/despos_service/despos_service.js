@@ -239,32 +239,27 @@ function getLocationsFromDatabase(DefaultClient) {
 }
 
 function getContactsFromDatabase(DefaultClient, parameters) {
-  const { contactType, pageNumber, itemCount } = parameters
+  const { contactType, pageNumber, itemCount, searchQuery } = parameters
+
+  let query;
+
 
   if (!contactType) {
-    let query = DefaultClient.from('contacts')
-      .select()
-      .order('date_added', { ascending: false })
-
-    if (pageNumber && itemCount) query = query.range(pageNumber*(itemCount-1), itemCount*(pageNumber+1)-1)
-    
-    return query.then(res => {
-      res.data = res.data.map(cleanContactInfo)
-      return res
-    })
+    query = DefaultClient.from('contacts').select(`*, full_name`)
+  } else {
+    query = DefaultClient.from('contacts').select(`*, full_name`).match({ contact_type: contactType })
   }
 
-  let query = DefaultClient.from('contacts')
-    .select()
-    .match({
-      contact_type: contactType,
-    })
-    .order('date_added', { ascending: false })
+  query = query.order('date_added', { ascending: false })
+
+  if (searchQuery && searchQuery.length) {
+    query = query.textSearch('full_name', searchQuery)
+  }
 
   if (pageNumber && itemCount) query = query.range(pageNumber*(itemCount-1), itemCount*(pageNumber+1)-1)
 
   return query.then(res => {
-      res.data = res.data.map(cleanContactInfo)
+      res.data = res.data?.map(cleanContactInfo)
       return res
     })
 }
@@ -296,7 +291,7 @@ function getProductCategoriesFromDatabase(DefaultClient) {
 }
 
 function getSalesFromDatabase(DefaultClient, parameters) {
-  const { customSelect, pageNumber, itemCount } = parameters
+  const { customSelect, pageNumber, itemCount, searchQuery } = parameters
 
   return DefaultClient.from('sales')
     .select(customSelect ?? '*')
@@ -336,9 +331,11 @@ function deleteContact(DefaultClient, parameters) {
   return DefaultClient.from('contacts')
     .delete({ count: 1 })
     .eq('id', id)
-    .then(() => {
+    .then(res => {
       if (profileUrl.length == 0) return
       return DefaultClient.storage.from('images').remove(profileUrl)
+
+      return res
     })
 }
 
@@ -406,9 +403,11 @@ function saveSalesToDatabase(DefaultClient, parameters) {
   delete clonedSales.selections
   delete clonedSales.length
 
-  return DefaultClient.from('sales').upsert(clonedSales, { onConflict: 'id' }).eq('id', clonedSales.id).select()
+  return DefaultClient.from('sales').upsert(clonedSales, { onConflict: 'id' }).select()
     .then(async res => {
       const { data } = res
+
+      console.log(res)
 
       const [savedSales] = data
       const toPerform = []
@@ -559,9 +558,9 @@ function getProductByBarcodeFromDatabase(DefaultClient, parameters) {
 }
 
 function getProductsFromDatabase(DefaultClient, parameters) {
-  const { pageNumber, itemCount } = parameters
+  const { pageNumber, itemCount, searchQuery } = parameters
 
-  return DefaultClient.from('items')
+  let query = DefaultClient.from('items')
     .select(`
       *,
       dealer:dealer_id(*),
@@ -574,7 +573,15 @@ function getProductsFromDatabase(DefaultClient, parameters) {
         ) 
       )
     `)
-    .range(pageNumber*(itemCount-1)+(pageNumber > 0 ? 1 : 0), itemCount*(pageNumber+1)-1)
+
+  if (searchQuery && searchQuery.length) {
+    console.log(searchQuery)
+    query = query.or(`item_name.like.%${searchQuery}%, code.like.%${searchQuery}%, barcode.eq.${searchQuery}, id.eq.${searchQuery}`)
+  }
+    
+  query = query.range(pageNumber*(itemCount-1)+(pageNumber > 0 ? 1 : 0), itemCount*(pageNumber+1)-1)
+
+  return query
 }
 
 async function getProductsCountFromDatabase(DefaultClient) {

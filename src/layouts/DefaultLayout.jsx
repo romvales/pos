@@ -2,47 +2,19 @@
 import { Link } from 'react-router-dom'
 
 import { MenuAlt3Icon } from '@heroicons/react/outline'
-import { useEffect, useState } from 'react'
 import { MediaDevice } from '../components/MediaDevice'
 import { RootContext } from '../App'
+import { useContext } from 'react'
 
 export { DefaultLayout }
 
 function DefaultLayout(props) {
-  const [isVisible, setVisiblity] = useState(true)
-  const [barcode, setBarcode] = useState()
-  const defaultState = {
-    currentBarcodeText: barcode,
-    setCurrentBarcodeText: setBarcode,
+  const rootContext = useContext(RootContext)
 
-    currentPageState: useState(0),
-    pageNumberState: useState(0),
-    itemCountState: useState(0),
-  }
-
-  useEffect(() => {
-    let scheduledVsibilityChange;
-
-    const observer = new PerformanceObserver((list) => {
-      setVisiblity(true)
-
-      list.getEntries().forEach((entry) => {
-        if (scheduledVsibilityChange) {
-          clearInterval(scheduledVsibilityChange)
-        }
-
-        scheduledVsibilityChange = setInterval(() => {
-          setVisiblity(false)
-        }, 1e3)
-      });
-    });
-
-    observer.observe({ type: 'resource', buffered: true });
-  }, [])
-
+  const [isVisible] = rootContext.loadingBarState
 
   return (
-    <RootContext.Provider value={defaultState}>
+    <>
       <MediaDevice></MediaDevice>
       <header className='sticky-top'>
         {
@@ -83,7 +55,7 @@ function DefaultLayout(props) {
                   <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} to={{ pathname: '/settings' }}>Settings</Link>
                 </li>
                 <li className='nav-item'>
-                  <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} aria-current='page' to={{ pathname: '/sales' }}>Statistics</Link>
+                  <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} aria-current='page' to={{ pathname: '/sales' }}>Sales History</Link>
                 </li>
               </ul>
             </div>
@@ -91,9 +63,9 @@ function DefaultLayout(props) {
           </div>
         </nav>
       </header>
-      <main className='mt-5 position-relative'>
+      <main className='mt-3 position-relative'>
         {props.children}
       </main>
-    </RootContext.Provider>
+    </>
   )
 }

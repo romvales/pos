@@ -1,26 +1,28 @@
 import { DefaultClient } from '../supabase'
 
 // @DATALOADER: staticProducts, staticCustomers, staticLocations, staticInvoiceTypes
-export async function SalesRegisterPageDataLoader() {
+export async function SalesRegisterPageDataLoader({ params, pageNumber = 0, itemCount = 12, searchQuery }) {
   return (await DefaultClient.functions.invoke('despos_service', {
     body: {
       funcName: 'SalesRegisterPageDataLoader',
       parameters: {
-        pageNumber: 0,
-        itemCount: 12,
+        pageNumber,
+        itemCount,
+        searchQuery,
       },
     }
   })).data
 }
 
 // @DATALOADER: staticSales
-export async function SalesManagerPageDataLoader({ request, params, pageNumber = 0, itemCount = 10 }) {
+export async function SalesManagerPageDataLoader({ request, params, pageNumber = 0, itemCount = 10, searchQuery }) {
   return (await DefaultClient.functions.invoke('despos_service', {
     body: {
       funcName: 'SalesManagerPageDataLoader',
       parameters: {
         pageNumber,
         itemCount,
+        searchQuery,
       },
     }
   })).data
@@ -39,20 +41,21 @@ export async function ItemManagerProductInfoPageDataLoader({ params }) {
 }
 
 // @DATALOADER: staticCategories, staticDealers, staticProducts
-export async function ItemManagerPageDataLoader({ params, pageNumber = 0, itemCount = 12 }) {
+export async function ItemManagerPageDataLoader({ params, pageNumber = 0, itemCount = 12, searchQuery }) {
   return (await DefaultClient.functions.invoke('despos_service', {
     body: {
       funcName: 'ItemManagerPageDataLoader',
       parameters: {
         pageNumber,
         itemCount,
+        searchQuery,
       },
     }
   })).data
 }
 
 // @DATALOADER
-export async function ContactManagerPageDataLoader({ params, pageNumber = 0, itemCount = 10 }) {
+export async function ContactManagerPageDataLoader({ params, pageNumber = 0, itemCount = 10, searchQuery }) {
   return (await DefaultClient.functions.invoke('despos_service', {
     body: {
       funcName: 'ContactManagerPageDataLoader',

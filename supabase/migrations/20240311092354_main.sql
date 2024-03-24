@@ -52,8 +52,8 @@ CREATE TABLE IF NOT EXISTS public.contacts (
   company_name TEXT NULL, 
   company_address TEXT NULL,
   business_nature TEXT NULL,
-  date_added TIMESTAMP NOT NULL DEFAULT now(),
-  date_open TIMESTAMP NOT NULL,
+  date_added TIMESTAMPTZ NOT NULL DEFAULT now(),
+  date_open TIMESTAMPTZ NOT NULL,
   approved_by INT NULL REFERENCES public.contacts(id) ON DELETE SET NULL,
   remarks TEXT NULL DEFAULT ''
 );
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS public.sales (
   customer_id INT NULL REFERENCES public.contacts(id) ON DELETE SET NULL,
   invoice_type_id INT NULL REFERENCES public.invoice_types(id) ON DELETE SET NULL,
   invoice_no BIGINT NOT NULL DEFAULT 0,
-  sales_date timestamp NOT NULL DEFAULT now(),
+  sales_date TIMESTAMPTZ NOT NULL DEFAULT now(),
   sub_total NUMERIC NOT NULL DEFAULT 0,
   total_due NUMERIC NOT NULL DEFAULT 0,
   amount_paid NUMERIC NOT NULL DEFAULT 0,

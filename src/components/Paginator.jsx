@@ -17,7 +17,7 @@ function Paginator(props) {
     setItemCount(props.defaultItemCount)
   })
 
-  return totalPages != 0 ?
+  return totalPages > 1 ?
     <ul className={`pagination mb-0 ${props.className}`.trim()}>
       <li className={`page-item ${currentPage == 0 ? 'disabled' : ''}`}>
         <button type='button' className='page-link' onClick={() => setCurrentPage(currentPage - 1)}>

@@ -5,11 +5,9 @@ import { uniqBy } from 'lodash'
 import { getFullName, getSalesFromDatabase, pesoFormatter } from '../actions'
 import { Link } from 'react-router-dom'
 import { useContext, useEffect, useMemo } from 'react'
-import { SalesManagerPageDataLoader } from '../pages/loaders'
+import Moment from 'moment'
 
 export { Transactions }
-
-let oldCollectionSales = []
 
 function Transactions(props) {
   const rootContext = useContext(RootContext)
@@ -21,11 +19,6 @@ function Transactions(props) {
 
   const [currentPage] = rootContext.currentPageState
   const [itemCount] = rootContext.itemCountState
-
-  const filterFunc = (sales) => {
-    const patt = new RegExp(searchQuery)
-    return patt.test(sales.invoice_no) || (sales.customer && patt.test(getFullName(sales.customer)))
-  }
 
   useEffect(() => {
     if (itemCount < 10) return
@@ -51,19 +44,19 @@ function Transactions(props) {
             Categories
           </th>
           <th className='text-secondary'>
-            Date Added
-          </th>
-          <th className='text-secondary'>
             Status
           </th>
           <th className='text-secondary'>
             Total Sale
           </th>
+          <th className='text-secondary'>
+            
+          </th>
         </tr>
       </thead>
       <tbody style={{ fontSize: '0.9rem' }}>
         {
-          uniqBy(collectionSales.filter(filterFunc), 'invoice_no').map(sales => {
+          uniqBy(collectionSales, 'invoice_no').map(sales => {
             const fullName = sales.customer ? getFullName(sales.customer) : 'Unknown'
             const selections = Object.values(sales.selections).filter(selection => selection.product)
 
@@ -106,13 +99,7 @@ function Transactions(props) {
                 </td>
 
                 <td className='align-middle'>
-                  {categories.join(', ')}
-                </td>
-
-                <td className='align-middle'>
-                  <time dateTime={sales.sales_date}>
-                    {new Date(sales.sales_date).toLocaleDateString('en', { month: '2-digit', day: '2-digit', year: 'numeric' })}
-                  </time>
+                  <span style={{ fontSize: '0.7rem' }}>{categories.join(', ')}</span>
                 </td>
 
                 <td className='align-middle'>
@@ -147,6 +134,12 @@ function Transactions(props) {
                       }
                     </span>
                   </div>
+                </td>
+
+                <td className='align-middle'>
+                  <time dateTime={sales.sales_date} className='text-secondary'>
+                    {Moment(sales.sales_date).format('LLL')}
+                  </time>
                 </td>
               </tr>
             )

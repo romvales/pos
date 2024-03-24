@@ -44,7 +44,7 @@ export {
 }
 
 const getFullName = (contact) => {
-  return [contact.first_name, contact.middle_initial, contact.last_name].join(' ').replace(/\s\s+/g, ' ')
+  return [contact.first_name, contact.last_name].join(' ').replace(/\s\s+/g, ' ')
 }
 
 const getDealerName = (dealer) => {
@@ -66,7 +66,7 @@ async function getLocationsFromDatabase() {
   })
 }
 
-async function getContactsFromDatabase(contactType, pageNumber = 0, itemCount = 10) {
+async function getContactsFromDatabase(contactType, pageNumber = 0, itemCount = 10, searchQuery) {
   return DefaultClient.functions.invoke('despos_service', {
     body: {
       funcName: 'getContactsFromDatabase',
@@ -74,6 +74,7 @@ async function getContactsFromDatabase(contactType, pageNumber = 0, itemCount = 
         contactType,
         pageNumber,
         itemCount,
+        searchQuery,
       },
     },
   })
@@ -297,13 +298,14 @@ function getProductByBarcodeFromDatabase(barcode) {
   })
 }
 
-async function getProductsFromDatabase(pageNumber = 0, itemCount = 10) {
+async function getProductsFromDatabase(pageNumber = 0, itemCount = 10, searchQuery) {
   return DefaultClient.functions.invoke('despos_service', {
     body: {
       funcName: 'getProductsFromDatabase',
       parameters: {
         pageNumber,
         itemCount,
+        searchQuery,
       }
     },
   })
@@ -318,37 +320,40 @@ async function getProductsCountFromDatabase() {
   })
 }
 
-async function getCustomers(pageNumber = 0, itemCount = 10) {
+async function getCustomers(pageNumber = 0, itemCount = 10, searchQuery) {
   return DefaultClient.functions.invoke('despos_service', {
     body: {
       funcName: 'getCustomers',
       parameters: {
         pageNumber,
         itemCount,
+        searchQuery,
       },
     },
   })
 }
 
-async function getStaffs(pageNumber = 0, itemCount = 10) {
+async function getStaffs(pageNumber = 0, itemCount = 10, searchQuery) {
   return DefaultClient.functions.invoke('despos_service', {
     body: {
       funcName: 'getStaffs',
       parameters: {
         pageNumber,
         itemCount,
+        searchQuery,
       },
     },
   })
 }
 
-async function getContacts(staticContacts, pageNumber = 0, itemCount = 10) {
+async function getContacts(staticContacts, pageNumber = 0, itemCount = 10, searchQuery) {
   const res = await DefaultClient.functions.invoke('despos_service', {
     body: {
       funcName: 'getContacts',
       parameters: {
         pageNumber,
         itemCount,
+        searchQuery,
       },
     },
   })
@@ -362,13 +367,14 @@ async function getContacts(staticContacts, pageNumber = 0, itemCount = 10) {
   return staticContacts
 }
 
-async function getDealers(pageNumber = 0, itemCount = 0) {
+async function getDealers(pageNumber = 0, itemCount = 0, searchQuery) {
   return DefaultClient.functions.invoke('despos_service', {
     body: {
       funcName: 'getDealers',
       parameters: {
         pageNumber,
         itemCount,
+        searchQuery,
       },
     },
   })

@@ -1,4 +1,4 @@
-import { useLoaderData, useNavigate } from 'react-router-dom'
+import { Link, useLoaderData, useNavigate } from 'react-router-dom'
 import { DefaultLayout } from '../layouts/DefaultLayout'
 import { XIcon } from '@heroicons/react/outline'
 import { createPublicUrlForPath, deleteProduct, getDealerName, saveProductToDatabase, uploadFileToServer } from '../actions'
@@ -44,7 +44,7 @@ function ItemManagerProductInfoPage(props) {
   const [generatedUnitCode, setGeneratedUnitCode] = useState(product.code)
 
   // @NOTE: Instead of using the unit cost of a product, we'll revert to the price level 1.
-  const [priceLevels, setPriceLevels] = useState([ ...cleanItemPriceLevels(product.itemPriceLevels) ].sort((a, b) => a.priceLevel.level_name > b.priceLevel.level_name))
+  const [priceLevels, setPriceLevels] = useState([...cleanItemPriceLevels(product.itemPriceLevels)].sort((a, b) => a.priceLevel.level_name > b.priceLevel.level_name))
   const mapStaticDealersByDealerName = {}
 
   for (const dealer of staticDealers) {
@@ -76,7 +76,7 @@ function ItemManagerProductInfoPage(props) {
     productData.priceLevels = priceLevels
 
     saveProductToDatabase(productData)
-      .then(() => {})
+      .then(() => { })
       .catch()
   }
 
@@ -131,6 +131,20 @@ function ItemManagerProductInfoPage(props) {
   return (
     <DefaultLayout>
       <div className='container mx-auto'>
+        <nav aria-label='breadcrumb'>
+          <ol className='breadcrumb'>
+            <li className='breadcrumb-item'>
+              <Link className='' to={{ pathname: '/' }}>Home</Link>
+            </li>
+            <li className='breadcrumb-item'>
+              <Link className='' to={{ pathname: '/products' }}>Products</Link>
+            </li>
+            <li className='breadcrumb-item active' aria-current='page'>
+              {product.item_name}
+            </li>
+          </ol>
+        </nav>
+
         <form className='d-flex gap-4' onSubmit={onSubmit}>
           <input name='id' type='number' className='d-none' aria-hidden={true} defaultValue={product.id} />
           <div className='mb-2 position-relative'>
@@ -274,7 +288,7 @@ function ItemManagerProductInfoPage(props) {
             <div className='d-flex flex-column gap-2'>
               {
                 priceLevels.map((level, i) => {
-                  
+
                   const onValueChange = (ev) => {
                     const clonePriceLevels = structuredClone(priceLevels)
                     const newPriceValue = Number(ev.target.value)
@@ -288,13 +302,13 @@ function ItemManagerProductInfoPage(props) {
 
                   return (
                     <div key={i} className='form-floating'>
-                      <input 
+                      <input
                         type='number'
-                        className='remedyArrow form-control' 
-                        id='priceLevelInput' 
-                        value={level.priceLevel.price.toString()} 
+                        className='remedyArrow form-control'
+                        id='priceLevelInput'
+                        value={level.priceLevel.price.toString()}
                         onChange={onValueChange} />
-                      <label htmlFor='priceLevelInput' className='form-label fs-6'>Level {i+1}</label>
+                      <label htmlFor='priceLevelInput' className='form-label fs-6'>Level {i + 1}</label>
                     </div>
                   )
                 })

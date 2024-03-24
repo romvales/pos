@@ -7,6 +7,7 @@ import { InvoiceForm, defaultSale } from '../components/InvoiceForm'
 import { SalesManagerPageDataLoader } from './loaders'
 import { Paginator } from '../components/Paginator'
 import { Transactions } from '../components/Transactions'
+import { debounce } from 'lodash'
 
 export {
   SalesManagerPage,
@@ -22,9 +23,9 @@ function SalesManagerPage(props) {
   const [selectedCustomer, setSelectedCustomer] = useState()
   const [searchQuery, setSearchQuery] = useState('')
   const [recalculate, setRecalculate] = useState()
-  
-  const refreshCollections = (pageNumber = 0, itemCount = 10) => {
-    SalesManagerPageDataLoader({ pageNumber, itemCount })
+
+  const refreshCollections = (pageNumber = 0, itemCount = 10, searchQuery = '') => {
+    SalesManagerPageDataLoader({ pageNumber, itemCount, searchQuery })
       .then(({ staticSales }) => {
         cleanUpCollectionAndSetState(staticSales)
       })
@@ -78,11 +79,31 @@ function SalesManagerPage(props) {
 
     setCollectionSales(cleanedCollection)
   }
+  
+  useEffect(() => {
+    
+
+
+
+  }, [ searchQuery ])
+
+  const onChange = debounce(ev => {
+    const searchQuery = ev.target.value
+    setSearchQuery(searchQuery)
+  }, 800)
 
   // @PAGE_URL: /sales
   return (
     <DefaultLayout>
       <div className='container mx-auto'>
+        <nav aria-label='breadcrumb'>
+          <ol className='breadcrumb'>
+            <li className='breadcrumb-item'>
+              <Link className='' to={{ pathname: '/' }}>Home</Link>
+            </li>
+            <li className='breadcrumb-item active' aria-current='page'>Sales History</li>
+          </ol>
+        </nav>
         <div className='row gap-3'>
           <section className='col-xl-3 col-md-4'>
             <InvoiceForm
@@ -101,14 +122,14 @@ function SalesManagerPage(props) {
 
             <nav className='mb-3 row'>
               <form className='col'>
-                <input value={searchQuery} className='form-control' placeholder='Search for an invoice...' onChange={ev => setSearchQuery(ev.target.value)} />
+                <input className='form-control' placeholder='Search for an invoice...' onChange={onChange} />
               </form>
               <div className='col-auto'>
                 <Paginator totalCount={salesCount} defaultItemCount={10}></Paginator>
               </div>
             </nav>
 
-            <Transactions 
+            <Transactions
               searchQueryState={[searchQuery, setSearchQuery]}
               collectionSalesState={[collectionSales, setCollectionSales]}
               onClickViewSales={onClickViewSales}

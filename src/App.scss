@@ -23,3 +23,12 @@ input.remedyArrow[type=number] {
 .productSelected {
   outline: 2px solid var(--bs-primary);
 }
+
+.breadcrumb {
+
+  font-size: 0.9rem;
+
+  a {
+    text-decoration: none;
+  }
+}

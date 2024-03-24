@@ -1,5 +1,5 @@
-import { useLoaderData } from 'react-router-dom'
-import { saveContactToDatabase } from '../actions'
+import { Link, useLoaderData } from 'react-router-dom'
+import { getFullName, saveContactToDatabase } from '../actions'
 import { DefaultLayout } from '../layouts/DefaultLayout'
 import { createRef, useState } from 'react'
 import { capitalize } from 'lodash'
@@ -46,6 +46,18 @@ function ContactInfoManagerPage(props) {
   return (
     <DefaultLayout>
       <div className='container row justify-content-center mx-auto'>
+        <nav aria-label='breadcrumb'>
+          <ol className='breadcrumb'>
+            <li className='breadcrumb-item'>
+              <Link className='' to={{ pathname: '/' }}>Home</Link>
+            </li>
+            <li className='breadcrumb-item'>
+              <Link className='' to={{ pathname: '/contacts' }}>Contacts</Link>
+            </li>
+            <li className='breadcrumb-item active' aria-current='page'>{getFullName(existingContact)} ({existingContact.id})</li>
+          </ol>
+        </nav>
+
         <form className='col-6 mb-4' ref={formRef} onSubmit={onSubmit}>
           <div className=''>
             <fieldset className='mb-3'>

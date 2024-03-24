@@ -3,6 +3,7 @@ import { createPublicUrlForPath, getProductsCountFromDatabase, getProductsFromDa
 import { useContext, useEffect, useState } from 'react'
 import { RootContext } from '../App'
 import { Paginator } from './Paginator'
+import { debounce } from 'lodash'
 
 export { AllProducts }
 
@@ -10,37 +11,39 @@ const productsCount = (await getProductsCountFromDatabase()).data
 
 function AllProducts(props) {
   const rootContext = useContext(RootContext)
-
+  const [searchQuery, setSearchQuery] = useState('')
   const [products, setProducts] = useState(props.products)
   const [itemCount] = rootContext.itemCountState
   const [currentPage] = rootContext.currentPageState
 
-  const [searchQuery, setSearchQuery] = useState('')
-  const filterFunc = (product) => {
-    const patt = new RegExp(searchQuery)
-    return patt.test(product.code) || patt.test(product.item_name)
+  const refreshProducts = () => {
+    getProductsFromDatabase(currentPage, itemCount, searchQuery)
+      .then(res => {
+        const { data } = res
+        setProducts(data ?? [])
+      })  
+      .catch()
   }
 
   useEffect(() => {
     if (itemCount < 10) return
-
-    getProductsFromDatabase(currentPage, itemCount)
-      .then(res => {
-        const { data } = res
-        if (data.length) setProducts(data)
-      })  
-      .catch()
-  }, [ currentPage, itemCount ])
+    refreshProducts()
+  }, [ currentPage, itemCount, searchQuery ])
 
   useEffect(() => {
     setProducts(props.products)
   }, [ props.products ])
 
+  const onChange = debounce(ev => {
+    const searchQuery = ev.target.value
+    setSearchQuery(searchQuery)
+  }, 500)
+
   return (
     <div className='container'>
       <nav className='mb-3 row'>
         <form className='col'>
-          <input value={searchQuery} className='form-control' placeholder='Search for a product...' onChange={ev => setSearchQuery(ev.target.value)} />
+          <input className='form-control' placeholder='Search for a product...' onChange={onChange} />
         </form>
         <div className='col-auto'>
           <Paginator totalCount={productsCount} defaultItemCount={12} />
@@ -49,7 +52,7 @@ function AllProducts(props) {
 
       <ul className='d-flex flex-wrap list-unstyled pb-0'>
         {
-          products.filter(filterFunc).map((product, i) => {
+          products.map((product, i) => {
             const uriEncodedProductName = encodeURIComponent(product.item_name)
             let itemImageUrl = 'https://placehold.co/300?text=' + product.item_name
 

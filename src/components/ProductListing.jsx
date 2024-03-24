@@ -4,6 +4,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/outline'
 import { addProductToSelection, deselectProductFromSelection } from './InvoiceForm'
 import { RootContext } from '../App'
 import { Paginator } from './Paginator'
+import { debounce, throttle } from 'lodash'
 
 export { ProductListing }
 
@@ -11,13 +12,21 @@ const productsCount = (await getProductsCountFromDatabase()).data
 
 function ProductListing(props) {
   const [products, setProducts] = useState(props.products ?? [])
-  const [searchQuery, setSearchQuery] = useState('')
   const [sales, setSales] = props.salesState
   const [recalculate, setRecalculate] = props.recalculator
   const rootContext = useContext(RootContext)
-  
+  const [searchQuery, setSearchQuery] = useState('')
   const [itemCount] = rootContext.itemCountState
   const [currentPage] = rootContext.currentPageState
+
+  const refreshProducts = () => {
+    getProductsFromDatabase(currentPage, itemCount, searchQuery)
+      .then(res => {
+        const { data } = res
+        setProducts(data ?? [])
+      })
+      .catch()
+  }
 
   const onClickAddItemToOrderSummary = (product) => {
     const productId = product.id
@@ -34,11 +43,6 @@ function ProductListing(props) {
       addProductToSelection(product, [sales, setSales])
       setRecalculate(!recalculate)
     }
-  }
-
-  const filterFunc = (product) => {
-    const patt = new RegExp(searchQuery)
-    return patt.test(product.code) || patt.test(product.item_name)
   }
 
   const sortFn = (a, b) => {
@@ -65,21 +69,23 @@ function ProductListing(props) {
   }, [rootContext.currentBarcodeText])
 
   useEffect(() => {
-    if (itemCount < 10) return
+    if (itemCount < 12) return
+    refreshProducts()
+  }, [ itemCount, currentPage, recalculate, searchQuery ])
 
-    getProductsFromDatabase(currentPage, itemCount)
-      .then(res => {
-        const { data } = res
-        if (data.length) setProducts(data)
-      })
-      .catch()
-  }, [ itemCount, currentPage, recalculate ])
+  const onChange = debounce(ev => {
+    const searchQuery = ev.target.value
+    setSearchQuery(searchQuery)
+  }, 800)
 
   return (
     <div>
       <nav className='mb-3 row'>
         <form className='d-flex col'>
-          <input value={searchQuery} className='form-control' placeholder='Search for a product...' onChange={ev => setSearchQuery(ev.target.value)} />
+          <input 
+            className='form-control' 
+            placeholder='Search for a product...' 
+            onChange={onChange} />
         </form>
         <div className='col-auto'>
           <Paginator totalCount={productsCount} defaultItemCount={12} />
@@ -116,11 +122,11 @@ function ProductListing(props) {
                     <picture>
                       <img style={{ height: '100px', filter: product.item_quantity <= 0 || defaultPriceLevel.priceLevel.price == 0 ? 'grayscale(100%)' : '' }} className='img-fluid rounded-top border-bottom w-100 object-fit-contain' src={itemImageUrl} alt='' />
                     </picture>
-                    <div className='px-3 py-2'>
+                    <div className='px-3 py-3'>
                       <h3 title={product.item_name} className='p-0 m-0 mb-2' style={{ fontWeight: 600, fontSize: '1.05rem' }}>
                         <span className='text-opacity-80'>{pesoFormatter.format(defaultPriceLevel.priceLevel.price)}</span> <span style={{ fontSize: '0.9rem' }} className='text-secondary fw-normal'>({pesoFormatter.format(product.item_cost)})</span>
                       </h3>
-                      <h3 title={product.item_name} style={{ fontSize: '0.95rem' }} className={`p-0 m-0 mb-1 ${ product.item_quantity <= 0 || defaultPriceLevel.priceLevel.price == 0 ? 'text-secondary' : '' } fw-semibold`}>
+                      <h3 title={product.item_name} style={{ fontSize: '0.95rem' }} className={`p-0 m-0 mb-1 ${ product.item_quantity <= 0 || defaultPriceLevel.priceLevel.price == 0 ? 'text-secondary' : '' } fw-normal`}>
                         {product.item_name}
                       </h3>
                       <dl className='fw-normal m-0'>

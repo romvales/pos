@@ -1,5 +1,6 @@
 import { createRef, useEffect, useState } from 'react'
 import { DefaultLayout } from '../layouts/DefaultLayout'
+import { Link } from 'react-router-dom'
 
 export { SettingsPage }
 
@@ -25,13 +26,18 @@ function SettingsPage(props) {
     window.location.reload()
   }
 
-  useEffect(() => {
-
-  }, [])
-
   return (
     <DefaultLayout>
       <div className='container mx-auto'>
+        <nav aria-label='breadcrumb'>
+          <ol className='breadcrumb'>
+            <li className='breadcrumb-item'>
+              <Link className='' to={{ pathname: '/' }}>Home</Link>
+            </li>
+            <li className='breadcrumb-item active' aria-current='page'>Settings</li>
+          </ol>
+        </nav>
+
         <section className='row'>
           <h1 className='fs-3 fw-semibold mb-4'>App settings</h1>
         </section>
@@ -74,9 +80,9 @@ function SettingsPage(props) {
                       return (
                         <li key={i} className='flex-grow-1'>
                           <div className='form-check'>
-                            <input className='form-check-input' type='radio' value={i} name={`video_input`} id={`videoInput${i+1}`} defaultChecked={videoInputs[i].deviceId == defaults.video_input.deviceId} />
-                            <label className='form-check-label' htmlFor={`videoInput${i+1}`}>
-                              { videoInputs[i].label.length ? videoInputs[i].label : `Video Source ${i+1}` }
+                            <input className='form-check-input' type='radio' value={i} name={`video_input`} id={`videoInput${i + 1}`} defaultChecked={videoInputs[i].deviceId == defaults.video_input.deviceId} />
+                            <label className='form-check-label' htmlFor={`videoInput${i + 1}`}>
+                              {videoInputs[i].label.length ? videoInputs[i].label : `Video Source ${i + 1}`}
                             </label>
                           </div>
                         </li>
