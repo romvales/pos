@@ -11,6 +11,7 @@ export { Transactions }
 
 function Transactions(props) {
   const rootContext = useContext(RootContext)
+  const onClickViewSales = props.onClickViewSales
   const [collectionSales] = props.collectionSalesState
   const refreshCollections = props.refreshCollections
 
@@ -46,7 +47,7 @@ function Transactions(props) {
           <th className='text-secondary'>
             Total Sale
           </th>
-          <th className='text-secondary'>
+          <th colSpan={2} className='text-secondary'>
             
           </th>
         </tr>
@@ -137,6 +138,10 @@ function Transactions(props) {
                   <time dateTime={sales.sales_date} className='text-secondary'>
                     {Moment(sales.sales_date).format('LLL')}
                   </time>
+                </td>
+
+                <td className='align-middle'>
+                  <button className='btn btn-sm btn-outline-secondary' style={{ border: 0 }} onClick={() => onClickViewSales(sales)}>Edit</button>
                 </td>
               </tr>
             )

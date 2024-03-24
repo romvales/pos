@@ -13,6 +13,8 @@ const productsCount = (await getProductsCountFromDatabase()).data
 function ProductListing(props) {
   const [products, setProducts] = useState(props.products ?? [])
   const [sales, setSales] = props.salesState
+
+  const [toRefreshProducts] = props.refreshProducts
   const [recalculate, setRecalculate] = props.recalculator
   const rootContext = useContext(RootContext)
   const [searchQuery, setSearchQuery] = useState('')
@@ -71,7 +73,7 @@ function ProductListing(props) {
   useEffect(() => {
     if (itemCount < 12) return
     refreshProducts()
-  }, [ itemCount, currentPage, recalculate, searchQuery ])
+  }, [ itemCount, currentPage, toRefreshProducts, searchQuery ])
 
   const onChange = debounce(ev => {
     const searchQuery = ev.target.value

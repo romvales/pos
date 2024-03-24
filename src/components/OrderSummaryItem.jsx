@@ -102,7 +102,6 @@ function OrderSummaryItem(props) {
 
   useEffect(() => {
     updateSelectionValues()
-
     if (persistPriceLevel) selection.price_level_id = null
   }, [selectedCustomer])
 

@@ -15,9 +15,10 @@ function SalesRegisterPage(props) {
   const [products] = useState(staticProducts)
   const [sales, setSales] = useState(structuredClone(defaultSale))
   const [recalculate, setRecalculate] = useState()
+  const [refreshProducts, setRefreshProducts] = useState()
 
   const onSubmitSuccess = () => {
-    setRecalculate(!recalculate)
+    setRefreshProducts(!refreshProducts)
   }
 
   // @PAGE_URL: /
@@ -27,6 +28,7 @@ function SalesRegisterPage(props) {
         <div className='row'>
           <section className='col-xl-8 col-md-7'>
             <ProductListing
+              refreshProducts={[refreshProducts, setRefreshProducts]}
               recalculator={[recalculate, setRecalculate]}
               salesState={[sales, setSales]}
               products={products} />

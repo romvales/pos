@@ -84,7 +84,8 @@ function SalesManagerPage(props) {
     setCollectionSales(cleanedCollection)
   }
   
-  useEffect(() => {
+  useEffect(() => { 
+    if (itemCount < 10) return
     refreshCollections()
   }, [ searchQuery ])
 
