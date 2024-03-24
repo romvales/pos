@@ -15,7 +15,7 @@ export async function SalesRegisterPageDataLoader({ params, pageNumber = 0, item
 }
 
 // @DATALOADER: staticSales
-export async function SalesManagerPageDataLoader({ request, params, pageNumber = 0, itemCount = 10, searchQuery }) {
+export async function SalesManagerPageDataLoader({ pageNumber = 0, itemCount = 10, searchQuery }) {
   return (await DefaultClient.functions.invoke('despos_service', {
     body: {
       funcName: 'SalesManagerPageDataLoader',

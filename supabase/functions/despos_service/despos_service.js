@@ -293,10 +293,16 @@ function getProductCategoriesFromDatabase(DefaultClient) {
 function getSalesFromDatabase(DefaultClient, parameters) {
   const { customSelect, pageNumber, itemCount, searchQuery } = parameters
 
-  return DefaultClient.from('sales')
+  let query = DefaultClient.from('sales')
     .select(customSelect ?? '*')
     .order('sales_date', { ascending: false })
-    .range(pageNumber*(itemCount-1)+(pageNumber > 0 ? 1 : 0), itemCount*(pageNumber+1)-1)
+
+  if (searchQuery && searchQuery.length) {
+    
+  }
+
+  query = query.range(pageNumber*(itemCount-1)+(pageNumber > 0 ? 1 : 0), itemCount*(pageNumber+1)-1)
+  return query
 }
 
 async function getSalesCountFromDatabase(DefaultClient) {
@@ -406,8 +412,6 @@ function saveSalesToDatabase(DefaultClient, parameters) {
   return DefaultClient.from('sales').upsert(clonedSales, { onConflict: 'id' }).select()
     .then(async res => {
       const { data } = res
-
-      console.log(res)
 
       const [savedSales] = data
       const toPerform = []
@@ -575,8 +579,7 @@ function getProductsFromDatabase(DefaultClient, parameters) {
     `)
 
   if (searchQuery && searchQuery.length) {
-    console.log(searchQuery)
-    query = query.or(`item_name.like.%${searchQuery}%, code.like.%${searchQuery}%, barcode.eq.${searchQuery}, id.eq.${searchQuery}`)
+    query = query.or(`item_name.like.%${searchQuery}%, code.like.%${searchQuery}%, barcode.eq.${searchQuery}`)
   }
     
   query = query.range(pageNumber*(itemCount-1)+(pageNumber > 0 ? 1 : 0), itemCount*(pageNumber+1)-1)

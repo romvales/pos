@@ -8,6 +8,7 @@ import { SalesManagerPageDataLoader } from './loaders'
 import { Paginator } from '../components/Paginator'
 import { Transactions } from '../components/Transactions'
 import { debounce } from 'lodash'
+import { RootContext } from '../App'
 
 export {
   SalesManagerPage,
@@ -18,24 +19,27 @@ const salesCount = (await getSalesCountFromDatabase()).data
 function SalesManagerPage(props) {
   const { staticSales } = useLoaderData()
 
+  const rootContext = useContext(RootContext)
   const [collectionSales, setCollectionSales] = useState(staticSales)
   const [selectedSales, setSelectedSales] = useState(structuredClone(defaultSale))
   const [selectedCustomer, setSelectedCustomer] = useState()
   const [searchQuery, setSearchQuery] = useState('')
   const [recalculate, setRecalculate] = useState()
+  const [currentPage] = rootContext.currentPageState
+  const [itemCount] = rootContext.itemCountState
 
-  const refreshCollections = (pageNumber = 0, itemCount = 10, searchQuery = '') => {
-    SalesManagerPageDataLoader({ pageNumber, itemCount, searchQuery })
+  const refreshCollections = () => {
+    SalesManagerPageDataLoader({ pageNumber: currentPage, itemCount, searchQuery })
       .then(({ staticSales }) => {
         cleanUpCollectionAndSetState(staticSales)
       })
   }
 
   // @FEATURE: Deletes a sale from the database
-  const onDeleteTransaction = (sale, pageNumber, itemCount) => {
+  const onDeleteTransaction = (sale) => {
     deleteSales(sale)
       .then(
-        () => refreshCollections(pageNumber, itemCount)
+        () => refreshCollections()
       )
   }
 
@@ -45,12 +49,12 @@ function SalesManagerPage(props) {
     setSelectedCustomer(sales.customer)
   }
 
-  const onSubmitSuccess = (pageNumber, itemCount) => {
-    refreshCollections(pageNumber, itemCount)
+  const onSubmitSuccess = () => {
+    refreshCollections()
   }
 
-  const onSaveSuccess = (pageNumber, itemCount) => {
-    refreshCollections(pageNumber, itemCount)
+  const onSaveSuccess = () => {
+    refreshCollections()
   }
 
   const cleanUpCollectionAndSetState = (collections) => {
@@ -81,10 +85,7 @@ function SalesManagerPage(props) {
   }
   
   useEffect(() => {
-    
-
-
-
+    refreshCollections()
   }, [ searchQuery ])
 
   const onChange = debounce(ev => {

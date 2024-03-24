@@ -12,9 +12,6 @@ export { Transactions }
 function Transactions(props) {
   const rootContext = useContext(RootContext)
   const [collectionSales] = props.collectionSalesState
-  const [searchQuery] = props.searchQueryState
-  const onDeleteTransaction = props.onDeleteTransaction
-  const onClickViewSales = props.onClickViewSales
   const refreshCollections = props.refreshCollections
 
   const [currentPage] = rootContext.currentPageState
@@ -22,7 +19,7 @@ function Transactions(props) {
 
   useEffect(() => {
     if (itemCount < 10) return
-    refreshCollections(currentPage, itemCount)
+    refreshCollections()
   }, [ currentPage, itemCount ])
 
   return (

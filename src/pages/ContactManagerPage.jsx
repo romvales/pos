@@ -112,7 +112,6 @@ function ContactManagerPage(props) {
         data?.map(contact => contacts[`${contact.contact_type}s`].push(contact))
         setContacts(contacts)
       })
-
   }, [ searchQuery ])
 
   const onChange = debounce(ev => {
