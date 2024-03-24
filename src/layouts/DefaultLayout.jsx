@@ -15,7 +15,7 @@ function DefaultLayout(props) {
 
   return (
     <>
-      <MediaDevice></MediaDevice>
+      {/* <MediaDevice></MediaDevice> */}
       <header className='sticky-top'>
         {
           isVisible ?
@@ -46,7 +46,7 @@ function DefaultLayout(props) {
             <div className='collapse navbar-collapse justify-content-between' id='navbarNav'>
               <ul className='navbar-nav'>
                 <li className='nav-item active'>
-                  <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} to={{ pathname: '/products' }}>Products</Link>
+                  <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} to={{ pathname: '/stocks' }}>Stocks</Link>
                 </li>
                 <li className='nav-item'>
                   <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} to={{ pathname: '/contacts' }}>Contacts</Link>
@@ -55,7 +55,7 @@ function DefaultLayout(props) {
                   <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} to={{ pathname: '/settings' }}>Settings</Link>
                 </li>
                 <li className='nav-item'>
-                  <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} aria-current='page' to={{ pathname: '/sales' }}>Sales History</Link>
+                  <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} aria-current='page' to={{ pathname: '/sales' }}>Sales</Link>
                 </li>
               </ul>
             </div>

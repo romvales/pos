@@ -127,7 +127,7 @@ function ItemManagerProductInfoPage(props) {
     }
   }, [])
 
-  // @PAGE_URL: /products/<product-name>
+  // @PAGE_URL: /stocks/p/<product-name>
   return (
     <DefaultLayout>
       <div className='container mx-auto'>
@@ -137,10 +137,10 @@ function ItemManagerProductInfoPage(props) {
               <Link className='' to={{ pathname: '/' }}>Home</Link>
             </li>
             <li className='breadcrumb-item'>
-              <Link className='' to={{ pathname: '/products' }}>Products</Link>
+              <Link className='' to={{ pathname: '/stocks' }}>Stocks</Link>
             </li>
             <li className='breadcrumb-item active' aria-current='page'>
-              {product.item_name}
+              Products - {product.item_name}
             </li>
           </ol>
         </nav>
@@ -171,6 +171,9 @@ function ItemManagerProductInfoPage(props) {
             </div>
             {
               product.barcode ? <svg className='barcode' data-format='EAN13' data-value={product.barcode} data-textmargin={0}></svg> : <></>
+            }
+            {
+              product.code ? <svg className='barcode' data-value={product.code} data-textmargin={0}></svg> : <></>
             }
           </div>
 

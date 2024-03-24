@@ -63,7 +63,7 @@ function AllProducts(props) {
             const ProductLink = (props) => (
               <Link
                 style={{ textDecoration: 'none' }}
-                to={{ pathname: `/products/${product.id}/${uriEncodedProductName}` }}>
+                to={{ pathname: `/stocks/p/${product.id}/${uriEncodedProductName}` }}>
                 {props.children}
               </Link>
             )

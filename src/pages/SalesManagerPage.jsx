@@ -103,9 +103,14 @@ function SalesManagerPage(props) {
             <li className='breadcrumb-item'>
               <Link className='' to={{ pathname: '/' }}>Home</Link>
             </li>
-            <li className='breadcrumb-item active' aria-current='page'>Sales History</li>
+            <li className='breadcrumb-item active' aria-current='page'>Sales</li>
           </ol>
         </nav>
+
+        <div className='row'>
+          Overview Hero
+        </div>
+
         <div className='row gap-3'>
           <section className='col-xl-3 col-md-4'>
             <InvoiceForm
@@ -120,7 +125,7 @@ function SalesManagerPage(props) {
 
           </section>
           <section className='col-xl-8 col-md-7'>
-            <h1 className='fs-3 fw-semibold mb-4'>Order history</h1>
+            <h1 className='fs-3 fw-semibold mb-4'>All transactions</h1>
 
             <nav className='mb-3 row'>
               <form className='col'>

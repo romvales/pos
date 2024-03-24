@@ -117,18 +117,26 @@ function ProductListing(props) {
                 }
               }
 
+              const isAvailable = product.item_quantity <= 0 || defaultPriceLevel.priceLevel.price == 0
+
               return (
                 <li
-                  role='button' key={i} className='d-flex col-xl-3 col-sm-6 p-1' style={{ cursor: product.item_quantity <= 0 ? 'not-allowed' : 'pointer' }} onClick={() => onClickAddItemToOrderSummary(product)}>
+                  role='button' 
+                  key={i} 
+                  className='d-flex col-xl-3 col-sm-6 p-1' 
+                  style={{ 
+                    cursor: isAvailable ? 'not-allowed' : 'pointer',
+                  }} 
+                  onClick={() => onClickAddItemToOrderSummary(product)}>
                   <div className={`border ${productHighlighted} shadow-sm h-100 w-100`} style={{ borderRadius: '0.45rem' }}>
                     <picture>
-                      <img style={{ height: '100px', filter: product.item_quantity <= 0 || defaultPriceLevel.priceLevel.price == 0 ? 'grayscale(100%)' : '' }} className='img-fluid rounded-top border-bottom w-100 object-fit-contain' src={itemImageUrl} alt='' />
+                      <img style={{ height: '100px', filter: isAvailable ? 'grayscale(100%)' : '' }} className='img-fluid rounded-top border-bottom w-100 object-fit-contain' src={itemImageUrl} alt='' />
                     </picture>
                     <div className='px-3 py-3'>
                       <h3 title={product.item_name} className='p-0 m-0 mb-2' style={{ fontWeight: 600, fontSize: '1.05rem' }}>
                         <span className='text-opacity-80'>{pesoFormatter.format(defaultPriceLevel.priceLevel.price)}</span> <span style={{ fontSize: '0.9rem' }} className='text-secondary fw-normal'>({pesoFormatter.format(product.item_cost)})</span>
                       </h3>
-                      <h3 title={product.item_name} style={{ fontSize: '0.95rem' }} className={`p-0 m-0 mb-1 ${ product.item_quantity <= 0 || defaultPriceLevel.priceLevel.price == 0 ? 'text-secondary' : '' } fw-normal`}>
+                      <h3 title={product.item_name} style={{ fontSize: '0.95rem' }} className={`p-0 m-0 mb-1 ${ isAvailable ? 'text-secondary' : '' } fw-normal`}>
                         {product.item_name}
                       </h3>
                       <dl className='fw-normal m-0'>

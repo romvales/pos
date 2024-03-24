@@ -228,7 +228,7 @@ function InvoiceForm(props) {
               <div className='flex-grow-1'>
                 <ul className='list-unstyled mb-0'>
                   <li>
-                    <h4 className='fs-5 fw-bold mb-0'>{getFullName(selectedCustomer)}</h4>
+                    <h4 className='fs-6 fw-bold mb-0'>{getFullName(selectedCustomer)}</h4>
                   </li>
                   <li className='d-flex gap-1'>
                     <span style={{ fontSize: '0.8rem' }} className='text-secondary'>{selectedCustomer.id}</span>
@@ -479,7 +479,7 @@ function InvoiceForm(props) {
         updateExistingContact={setSelectedCustomer}></NewContactPopup>
 
       <ContactSelector
-        contacts={contacts}
+        contactsState={[contacts, setContacts]}
         updateSelection={setSelectedCustomer}></ContactSelector>
     </div>
   )

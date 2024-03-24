@@ -1,15 +1,33 @@
-import { capitalize } from 'lodash'
-import { useState } from 'react'
-import { getFullName } from '../actions'
+import { capitalize, debounce } from 'lodash'
+import { useContext, useEffect, useState } from 'react'
+import { getContactsCountFromDatabase, getContactsFromDatabase, getFullName } from '../actions'
+import { RootContext } from '../App'
+import { SelectorIcon } from '@heroicons/react/outline'
 
 export { ContactSelector }
 
 function ContactSelector(props) {
-  const contacts = props.contacts
+
+  const rootContext = useContext(RootContext)
+  const [contacts, setContacts] = props.contactsState
   const updateSelection = props.updateSelection
   const titleHeader = props.titleHeader ?? ''
 
   const [searchQuery, setSearchQuery] = useState('')
+
+
+  useEffect(() => {
+    getContactsFromDatabase(null, 0, 12, searchQuery)
+      .then(res => {
+        const { data } = res
+        setContacts(data)
+      })
+  }, [ searchQuery ])
+
+  const onChange = debounce(ev => {
+    const searchQuery = ev.target.value
+    setSearchQuery(searchQuery)
+  }, 800)
 
   return (
     <div className='modal fade' tabIndex='-1' id='contactSelection' aria-labelledby='contactSelectionModal'>
@@ -25,14 +43,13 @@ function ContactSelector(props) {
                 <input
                   name='searchQuery'
                   type='text'
-                  value={searchQuery}
                   className='form-control shadow-none'
                   placeholder='Search for someone...'
-                  onChange={ev => setSearchQuery(ev.target.value)} />
+                  onChange={onChange} />
               </div>
               <ul className='list-group'>
                 {
-                  contacts.filter(contact => new RegExp(searchQuery).test(getFullName(contact))).map((contact, i) => {
+                  contacts.map((contact, i) => {
                     const placeholderUrl = 'https://placehold.co/64?text=' + contact.first_name
 
                     return (
@@ -60,6 +77,7 @@ function ContactSelector(props) {
                             onClick={() => updateSelection(contact)}
                             data-bs-dismiss='modal' 
                             aria-label='Close'>
+                            <SelectorIcon width={18} />
                             <span className='initialism text-capitalize'>Choose</span>
                           </button>
                         </div>

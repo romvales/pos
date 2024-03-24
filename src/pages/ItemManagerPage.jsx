@@ -36,7 +36,7 @@ function ItemManagerPage(props) {
             <li className='breadcrumb-item'>
               <Link className='' to={{ pathname: '/' }}>Home</Link>
             </li>
-            <li className='breadcrumb-item active' aria-current='page'>Products</li>
+            <li className='breadcrumb-item active' aria-current='page'>Stocks</li>
           </ol>
         </nav>
 

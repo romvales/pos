@@ -34,12 +34,12 @@ const router = createBrowserRouter([
     loader: ContactInfoManagerPageDataLoader,
   },
   {
-    path: '/products', 
+    path: '/stocks', 
     lazy: () => import('./ItemManagerPage').then(val => ({ Component: val.ItemManagerPage })),
     loader: ItemManagerPageDataLoader,
   },
   {
-    path: '/products/:id/:product_name',
+    path: '/stocks/p/:id/:product_name',
     lazy: () => import('./ItemManagerProductInfoPage').then(val => ({ Component: val.ItemManagerProductInfoPage })),
     loader: ItemManagerProductInfoPageDataLoader,
   },

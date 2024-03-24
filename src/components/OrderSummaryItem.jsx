@@ -25,7 +25,7 @@ function OrderSummaryItem(props) {
   const [sales, setSales] = props.salesState
   const [recalculate, setRecalculate] = props.recalculator
 
-  const selection = sales.selections[productData.id]
+  const selection = sales.selections[productData.id] ?? {}
   const selectedCustomer = props.selectedCustomer
   const originalSalesState = props.originalState
   const persistPriceLevel = props.persistPriceLevel ?? false
@@ -36,13 +36,13 @@ function OrderSummaryItem(props) {
   const selectedPriceLevel = itemPriceLevels[selectedCustomerPriceLevel - 1]
 
   const checkValue = () => {
-    if (selection.quantity === 0) {
+    if (selection?.quantity === 0) {
       deselectProductFromSelection(productData.id, originalSalesState, props.salesState)
       setRecalculate(!recalculate)
       return 0
-    } else if (productData.item_quantity - selection.quantity < 0) {
+    } else if (productData.item_quantity - selection?.quantity < 0) {
       selection.quantity = productData.item_quantity
-    } else if (Number.isNaN(selection.quantity)) {
+    } else if (Number.isNaN(selection?.quantity)) {
       selection.quantity = 1
     }
   }
@@ -120,10 +120,10 @@ function OrderSummaryItem(props) {
           <div className='flex-grow-1 px-2'>
             <ul className='list-unstyled'>
               <li>
-                <h5 className='fs-6 fw-semibold mb-0'>{productData.item_name}</h5>
+                <h5 style={{ fontSize: '0.9rem' }} className='fw-semibold mb-0'>{productData.item_name}</h5>
               </li>
-              <li className='mb-2'>
-                <p className='text-secondary' style={{ fontSize: '0.8rem' }}>
+              <li>
+                <p className='text-secondary mb-1' style={{ fontSize: '0.8rem' }}>
                   {productData.code} (Stock: {productData.item_quantity})
                 </p>
               </li>
@@ -137,7 +137,7 @@ function OrderSummaryItem(props) {
 
                   <input
                     type='number'
-                    value={selection.quantity.toString()}
+                    value={selection?.quantity?.toString()}
                     className='remedyArrow form-control form-control-sm shadow-none text-center'
                     onChange={ev => onChangeSelection(ev.target.valueAsNumber)}
                     style={{ width: '2rem' }} />
@@ -153,9 +153,13 @@ function OrderSummaryItem(props) {
 
             {
               itemPriceLevels?.length && selectedCustomerPriceLevel && selectedPriceLevel?.priceLevel?.price && selectedCustomerPriceLevel != 1 ?
-                <button type='button' className='btn btn-outline-primary bg-white text-primary btn-sm' onClick={() => onClickUsePriceLevel()}>
+                <button 
+                  type='button' 
+                  style={{ fontSize: '0.7rem' }}
+                  className='btn btn-outline-primary bg-white text-primary btn-sm mt-2' 
+                  onClick={() => onClickUsePriceLevel()}>
                   {
-                    selection.price_level_id != null ?
+                    selection?.price_level_id != null ?
                       `Revert`
                       :
                       `Use ${pesoFormatter.format(selectedPriceLevel?.priceLevel?.price)} (Lvl. ${selectedCustomerPriceLevel})`
@@ -169,12 +173,12 @@ function OrderSummaryItem(props) {
 
           <div className='d-flex flex-column justify-content-between align-items-end'>
             <div className=''>
-              <output className='text-secondary'>{pesoFormatter.format(selection.cost)}</output>
+              <output className='text-secondary'>{pesoFormatter.format(selection?.cost)}</output>
             </div>
           </div>
         </div>
         <div className=''>
-          <output className='fw-bold'>{pesoFormatter.format(selection.price)}</output>
+          <output className='fw-bold'>{pesoFormatter.format(selection?.price)}</output>
         </div>
       </div>
     </li>

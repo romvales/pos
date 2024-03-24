@@ -1,11 +1,11 @@
 
 import { RootContext } from '../App'
-import { TrashIcon, EyeIcon } from '@heroicons/react/outline'
+import { PencilAltIcon } from '@heroicons/react/outline'
 import { uniqBy } from 'lodash'
-import { getFullName, getSalesFromDatabase, pesoFormatter } from '../actions'
+import { getFullName, pesoFormatter } from '../actions'
 import { Link } from 'react-router-dom'
-import { useContext, useEffect, useMemo } from 'react'
-import Moment from 'moment'
+import { useContext, useEffect } from 'react'
+import Moment from 'moment-timezone'
 
 export { Transactions }
 
@@ -40,9 +40,6 @@ function Transactions(props) {
           </th>
           <th className='text-secondary'>
             Categories
-          </th>
-          <th className='text-secondary'>
-            Status
           </th>
           <th className='text-secondary'>
             Total Sale
@@ -96,26 +93,10 @@ function Transactions(props) {
                   }
                 </td>
 
-                <td className='align-middle'>
+                <td>
                   <span style={{ fontSize: '0.7rem' }}>{categories.join(', ')}</span>
                 </td>
 
-                <td className='align-middle'>
-                  {
-                    (() => {
-                      switch (sales.sales_status) {
-                        case 'in-progress':
-                          return <span className='badge text-bg-secondary bg-opacity-75 p-2 text-uppercase'>PENDING</span>
-                        case 'refunded':
-                          return <span className='badge text-bg-danger bg-opacity-75 p-2'>REFUND</span>
-                        case 'paid':
-                          return <span className='badge text-bg-success bg-opacity-75 p-2 text-uppercase'>PAID</span>
-                        case 'return':
-                          return <span className='badge text-bg-secondary bg-opacity-75 p-2 text-uppercase'>RETURN</span>
-                      }
-                    })()
-                  }
-                </td>
                 <td className='align-middle'>
                   <div className='d-flex flex-column'>
                     <span>
@@ -136,12 +117,15 @@ function Transactions(props) {
 
                 <td className='align-middle'>
                   <time dateTime={sales.sales_date} className='text-secondary'>
-                    {Moment(sales.sales_date).format('LLL')}
+                    {Moment(sales.sales_date).tz('Asia/Manila').format('LLL')}
                   </time>
                 </td>
 
                 <td className='align-middle'>
-                  <button className='btn btn-sm btn-outline-secondary' style={{ border: 0 }} onClick={() => onClickViewSales(sales)}>Edit</button>
+                  <button className='btn btn-sm btn-outline-secondary d-flex align-items-center' style={{ border: 0, gap: '0.151rem' }} onClick={() => onClickViewSales(sales)}>
+                    <PencilAltIcon width={16} />
+                    Edit
+                  </button>
                 </td>
               </tr>
             )
