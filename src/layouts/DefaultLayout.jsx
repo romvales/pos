@@ -11,6 +11,9 @@ export { DefaultLayout }
 function DefaultLayout(props) {
   const rootContext = useContext(RootContext)
 
+  const Breadcrumbs = props.Breadcrumbs
+  const AsidedContent = props.AsidedContent
+
   const [isVisible] = rootContext.loadingBarState
 
   return (
@@ -31,6 +34,7 @@ function DefaultLayout(props) {
             :
             <></>
         }
+
         <nav className='navbar navbar-expand-lg border-bottom bg-white'>
           <div className='container'>
             <Link className='navbar-brand' to={{ pathname: '/' }}>
@@ -59,10 +63,20 @@ function DefaultLayout(props) {
                 </li>
               </ul>
             </div>
-
           </div>
         </nav>
+
       </header>
+
+      {
+        AsidedContent ?
+          <aside id='topAsideContent'>
+            <AsidedContent Breadcrumbs={Breadcrumbs} />
+          </aside>
+          :
+          <></>
+      }
+
       <main className='mt-3 position-relative'>
         {props.children}
       </main>

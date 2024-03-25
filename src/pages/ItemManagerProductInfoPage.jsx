@@ -127,23 +127,27 @@ function ItemManagerProductInfoPage(props) {
     }
   }, [])
 
+  const Breadcrumbs = () => (
+    <nav aria-label='breadcrumb'>
+      <ol className='breadcrumb'>
+        <li className='breadcrumb-item'>
+          <Link className='' to={{ pathname: '/' }}>Home</Link>
+        </li>
+        <li className='breadcrumb-item'>
+          <Link className='' to={{ pathname: '/stocks' }}>Stocks</Link>
+        </li>
+        <li className='breadcrumb-item active' aria-current='page'>
+          Products - {product.item_name}
+        </li>
+      </ol>
+    </nav>
+  )
+
   // @PAGE_URL: /stocks/p/<product-name>
   return (
-    <DefaultLayout>
+    <DefaultLayout Breadcrumbs={Breadcrumbs}>
       <div className='container mx-auto'>
-        <nav aria-label='breadcrumb'>
-          <ol className='breadcrumb'>
-            <li className='breadcrumb-item'>
-              <Link className='' to={{ pathname: '/' }}>Home</Link>
-            </li>
-            <li className='breadcrumb-item'>
-              <Link className='' to={{ pathname: '/stocks' }}>Stocks</Link>
-            </li>
-            <li className='breadcrumb-item active' aria-current='page'>
-              Products - {product.item_name}
-            </li>
-          </ol>
-        </nav>
+        <Breadcrumbs />
 
         <form className='d-flex gap-4' onSubmit={onSubmit}>
           <input name='id' type='number' className='d-none' aria-hidden={true} defaultValue={product.id} />
@@ -172,6 +176,7 @@ function ItemManagerProductInfoPage(props) {
             {
               product.barcode ? <svg className='barcode' data-format='EAN13' data-value={product.barcode} data-textmargin={0}></svg> : <></>
             }
+            <br />
             {
               product.code ? <svg className='barcode' data-value={product.code} data-textmargin={0}></svg> : <></>
             }

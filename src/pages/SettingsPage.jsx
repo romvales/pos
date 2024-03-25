@@ -26,78 +26,90 @@ function SettingsPage(props) {
     window.location.reload()
   }
 
-  return (
-    <DefaultLayout>
-      <div className='container mx-auto'>
-        <nav aria-label='breadcrumb'>
-          <ol className='breadcrumb'>
-            <li className='breadcrumb-item'>
-              <Link className='' to={{ pathname: '/' }}>Home</Link>
-            </li>
-            <li className='breadcrumb-item active' aria-current='page'>Settings</li>
-          </ol>
-        </nav>
+  const Breadcrumbs = () => (
+    <nav aria-label='breadcrumb'>
+      <ol className='breadcrumb'>
+        <li className='breadcrumb-item'>
+          <Link className='' to={{ pathname: '/' }}>Home</Link>
+        </li>
+        <li className='breadcrumb-item active' aria-current='page'>Settings</li>
+      </ol>
+    </nav>
+  )
 
-        <section className='row'>
+  return (
+    <DefaultLayout Breadcrumbs={Breadcrumbs}>
+      <div className='container mx-auto'>
+        <Breadcrumbs />
+
+        <section className='row mb-2'>
           <h1 className='fs-3 fw-semibold mb-4'>App settings</h1>
         </section>
 
-        <form onSubmit={onSubmit}>
-          <fieldset>
-            <div className='row mb-2'>
-              <div className='col-2'>
-                <h3 className='fs-6 fw-semibold'>Server URL</h3>
-              </div>
-              <div className='col-10'>
-                <div className='form-floating'>
-                  <input name='server_url' className='form-control' id='serverUrlInput' defaultValue={defaults.server_url} />
-                  <label htmlFor='serverUrlInput' className='form-label'>(e.g. https://despos-xxxx-xxxx-xxxx.romvales.com)</label>
-                </div>
-              </div>
-            </div>
-            <div className='row mb-2'>
-              <div className='col-2'>
-                <h3 className='fs-6 fw-semibold'>Server Token</h3>
-              </div>
-              <div className='col-10'>
-                <div className='form-floating'>
-                  <input name='server_token' type='password' className='form-control' id='serverTokenInput' defaultValue={defaults.server_token} />
-                  <label htmlFor='serverTokenInput' className='form-label'>Put the private token provided to you here</label>
-                </div>
-              </div>
-            </div>
-          </fieldset>
+        <section className='row'>
+          <nav className='col-3 flex-grow-1'>
+            <p className='text-secondary'>Update your settings here.</p>
+          </nav>
 
-          <fieldset>
-            <div className='row mb-2'>
-              <div className='col-2'>
-                <h3 className='fs-6 fw-semibold'>Video Devices</h3>
-              </div>
-              <div className='col-10'>
-                <ul className='list-unstyled d-flex gap-2'>
-                  {
-                    videoInputs.map((video, i) => {
-                      return (
-                        <li key={i} className='flex-grow-1'>
-                          <div className='form-check'>
-                            <input className='form-check-input' type='radio' value={i} name={`video_input`} id={`videoInput${i + 1}`} defaultChecked={videoInputs[i].deviceId == defaults.video_input.deviceId} />
-                            <label className='form-check-label' htmlFor={`videoInput${i + 1}`}>
-                              {videoInputs[i].label.length ? videoInputs[i].label : `Video Source ${i + 1}`}
-                            </label>
-                          </div>
-                        </li>
-                      )
-                    })
-                  }
-                </ul>
-              </div>
-            </div>
-          </fieldset>
+          <div className='col-9'>
+            <form onSubmit={onSubmit}>
+              <fieldset>
+                <div className='row mb-2'>
+                  <div className='col-2'>
+                    <h3 className='fs-6 fw-semibold'>Server URL</h3>
+                  </div>
+                  <div className='col-10'>
+                    <div className='form-floating'>
+                      <input name='server_url' className='form-control' id='serverUrlInput' defaultValue={defaults.server_url} />
+                      <label htmlFor='serverUrlInput' className='form-label'>(e.g. https://despos-xxxx-xxxx-xxxx.romvales.com)</label>
+                    </div>
+                  </div>
+                </div>
+                <div className='row mb-2'>
+                  <div className='col-2'>
+                    <h3 className='fs-6 fw-semibold'>Server Token</h3>
+                  </div>
+                  <div className='col-10'>
+                    <div className='form-floating'>
+                      <input name='server_token' type='password' className='form-control' id='serverTokenInput' defaultValue={defaults.server_token} />
+                      <label htmlFor='serverTokenInput' className='form-label'>Put the private token provided to you here</label>
+                    </div>
+                  </div>
+                </div>
+              </fieldset>
 
-          <div className='d-flex justify-content-end'>
-            <button type='submit' className='btn btn-primary'>Save</button>
+              <fieldset>
+                <div className='row mb-2'>
+                  <div className='col-2'>
+                    <h3 className='fs-6 fw-semibold'>Video Devices</h3>
+                  </div>
+                  <div className='col-10'>
+                    <ul className='list-unstyled d-flex gap-2'>
+                      {
+                        videoInputs.map((video, i) => {
+                          return (
+                            <li key={i} className='flex-grow-1'>
+                              <div className='form-check'>
+                                <input className='form-check-input' type='radio' value={i} name={`video_input`} id={`videoInput${i + 1}`} defaultChecked={videoInputs[i].deviceId == defaults.video_input.deviceId} />
+                                <label className='form-check-label' htmlFor={`videoInput${i + 1}`}>
+                                  {videoInputs[i].label.length ? videoInputs[i].label : `Video Source ${i + 1}`}
+                                </label>
+                              </div>
+                            </li>
+                          )
+                        })
+                      }
+                    </ul>
+                  </div>
+                </div>
+              </fieldset>
+
+              <div className='d-flex justify-content-end'>
+                <button type='submit' className='btn btn-primary'>Save</button>
+              </div>
+            </form>
           </div>
-        </form>
+        </section>
       </div>
     </DefaultLayout>
   )

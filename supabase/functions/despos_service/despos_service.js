@@ -32,14 +32,18 @@ export {
   // Counters
   getSalesCountFromDatabase,
   getContactsCountFromDatabase,
+  getContactsCountByTypeFromDatabase,
   getProductsCountFromDatabase,
 
   deleteLocation,
   deleteContact,
+  deleteContactSelections,
   deleteProductCategory,
   deleteProductItemSelectionByIdFromDatabase,
   deleteProduct,
   deleteSales,
+
+  refreshContacts,
 
 }
 
@@ -84,8 +88,7 @@ async function ContactManagerPageDataLoader(DefaultClient, parameters) {
     data: {
       staticLocations,
       staticContacts,
-
-      
+      counts: (await getContactsCountByTypeFromDatabase(DefaultClient)).data,
     }
   }
 }
@@ -243,7 +246,6 @@ function getContactsFromDatabase(DefaultClient, parameters) {
 
   let query;
 
-
   if (!contactType) {
     query = DefaultClient.from('contacts').select(`*, full_name`)
   } else {
@@ -256,7 +258,7 @@ function getContactsFromDatabase(DefaultClient, parameters) {
     query = query.textSearch('full_name', searchQuery)
   }
 
-  if (pageNumber && itemCount) query = query.range(pageNumber*(itemCount-1), itemCount*(pageNumber+1)-1)
+  query = query.range(pageNumber*(itemCount-1)+(pageNumber > 0 ? 1 : 0), itemCount*(pageNumber+1)-1)
 
   return query.then(res => {
       res.data = res.data?.map(cleanContactInfo)
@@ -275,6 +277,16 @@ async function getContactsCountFromDatabase(DefaultClient, parameters) {
   
   return {
     data: (await DefaultClient.from('contacts').select('id', { count: 'exact', head: true }).match({ contact_type: contactType })).count ?? 0
+  }
+}
+
+async function getContactsCountByTypeFromDatabase(DefaultClient) {
+  return {
+    data: {
+      customersCount: (await getContactsCountFromDatabase(DefaultClient, { contactType: 'customer' })).data,
+      staffsCount: (await getContactsCountFromDatabase(DefaultClient, { contactType: 'staff' })).data,
+      dealersCount: (await getContactsCountFromDatabase(DefaultClient, { contactType: 'dealer' })).data,
+    }
   }
 }
 
@@ -340,6 +352,23 @@ function deleteContact(DefaultClient, parameters) {
     .then(res => {
       if (profileUrl.length == 0) return
       return DefaultClient.storage.from('images').remove(profileUrl)
+
+      return res
+    })
+}
+
+function deleteContactSelections(DefaultClient, parameters) {
+  const { contacts } = parameters
+
+  return DefaultClient.from('contacts')
+    .delete()
+    .in('id', contacts.map(contact => contact.id))
+    .then(res => {
+
+      // Delete all profile pictures
+      contacts.forEach(contact => {
+        DefaultClient.storage.from('images').remove(contact.profile_url)
+      })
 
       return res
     })
@@ -577,6 +606,7 @@ function getProductsFromDatabase(DefaultClient, parameters) {
         ) 
       )
     `)
+    .eq('is_variant', false)
 
   if (searchQuery && searchQuery.length) {
     query = query.or(`item_name.like.%${searchQuery}%, code.like.%${searchQuery}%, barcode.eq.${searchQuery}`)
@@ -640,6 +670,37 @@ async function getContacts(DefaultClient, parameters) {
   await getDealers(DefaultClient, parameters).then(dealers => staticContacts.dealers = dealers?.data ?? [])
 
   return { data: staticContacts }
+}
+
+async function refreshContacts(DefaultClient, parameters) {
+  const { contactTypes } = parameters
+
+  const types = new Set(contactTypes)
+  const contacts = {}
+
+  if (types.has('customers')) {
+    await getCustomers(DefaultClient, parameters).then(customers => {
+      contacts.customers = customers.data
+    })
+      .catch()
+  }
+
+  if (types.has('staffs')) {
+    await getStaffs(DefaultClient, parameters).then(staffs => {
+      contacts.staffs = staffs.data
+    })
+      .catch()
+  }
+
+  if (types.has('dealers')) {
+    await getDealers(DefaultClient, parameters).then(dealers => {
+      contacts.dealers = dealers.data
+    })
+      .catch()
+  }
+
+
+  return { data: contacts }
 }
 
 const cleanContactInfo = (contact) => {

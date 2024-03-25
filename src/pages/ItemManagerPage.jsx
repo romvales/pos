@@ -27,18 +27,22 @@ function ItemManagerPage(props) {
       })
   }
 
-  // @PAGE_URL: /products
+  const Breadcrumbs = () => (
+    <nav aria-label='breadcrumb'>
+      <ol className='breadcrumb'>
+        <li className='breadcrumb-item'>
+          <Link className='' to={{ pathname: '/' }}>Home</Link>
+        </li>
+        <li className='breadcrumb-item active' aria-current='page'>Stocks</li>
+      </ol>
+    </nav>
+  )
+
+  // @PAGE_URL: /products 
   return (
-    <DefaultLayout>
+    <DefaultLayout Breadcrumbs={Breadcrumbs}>
       <div className='container mx-auto'>
-        <nav aria-label='breadcrumb'>
-          <ol className='breadcrumb'>
-            <li className='breadcrumb-item'>
-              <Link className='' to={{ pathname: '/' }}>Home</Link>
-            </li>
-            <li className='breadcrumb-item active' aria-current='page'>Stocks</li>
-          </ol>
-        </nav>
+        <Breadcrumbs />
 
         <div className='d-flex gap-5'>
           <section className='col'>
@@ -48,7 +52,7 @@ function ItemManagerPage(props) {
                 <li className='nav-item'>
                   <a
                     type='button'
-                    className={`fw-semibold nav-link ${activeTabView == 'all' ? 'active' : ''}`}
+                    className={`nav-link ${activeTabView == 'all' ? 'active' : ''}`}
                     aria-current={activeTabView == 'all' ? 'page' : false}
                     onClick={() => setActiveTabView('all')}>All Products</a>
                 </li>

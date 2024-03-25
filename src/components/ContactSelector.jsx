@@ -7,14 +7,12 @@ import { SelectorIcon } from '@heroicons/react/outline'
 export { ContactSelector }
 
 function ContactSelector(props) {
-
+  
   const rootContext = useContext(RootContext)
   const [contacts, setContacts] = props.contactsState
   const updateSelection = props.updateSelection
   const titleHeader = props.titleHeader ?? ''
-
   const [searchQuery, setSearchQuery] = useState('')
-
 
   useEffect(() => {
     getContactsFromDatabase(null, 0, 12, searchQuery)

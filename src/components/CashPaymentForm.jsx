@@ -1,4 +1,4 @@
-import { pesoFormatter } from "../actions"
+import { CurrencyFormatter } from '../locales/currencies'
 
 export { CashPaymentForm }
 
@@ -44,7 +44,7 @@ function CashPaymentForm(props) {
           </div>
           {
             isValid ?
-              <p style={{ fontSize: '0.86rem' }} className='text-secondary'>Change: {pesoFormatter.format(sales.amount_paid-sales.total_due)}</p>
+              <p style={{ fontSize: '0.86rem' }} className='text-secondary'>Change: {CurrencyFormatter.format(sales.amount_paid-sales.total_due)}</p>
               :
               <>
               

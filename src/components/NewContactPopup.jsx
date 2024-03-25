@@ -1,7 +1,8 @@
 
 import { capitalize, result } from 'lodash'
-import { createRef, useEffect, useMemo, useState } from 'react'
-import { getContacts, getContactsFromDatabase, saveContactToDatabase } from '../actions'
+import { createRef, useContext, useEffect, useMemo, useState } from 'react'
+import { getContacts, getContactsFromDatabase, refreshContacts, saveContactToDatabase } from '../actions'
+import { RootContext } from '../App'
 
 export { NewContactPopup }
 
@@ -30,6 +31,7 @@ const createEmptyContact = () => {
     company_name: '',
     company_address: '',
     business_nature: '',
+    date_added: new Date(),
     date_open: dateOpen,
     approved_by: null,
     remarks: '',
@@ -40,11 +42,15 @@ function NewContactPopup(props) {
   const titleHeader = props.title
   const formRef = createRef()
   const closePopup = createRef()
+  const rootContext = useContext(RootContext)
   const isReadOnlyCustomerType = props.isReadOnlyCustomerType
   const locations = props.locations ?? []
-  const updateContacts = props.updateContacts
+  const [contacts, setContacts] = props.contactsState
   const [contact, setContact] = useState(createEmptyContact())
+  const [searchQuery] = props.searchQueryState ?? useState('')
   const updateExistingContact = props.updateExistingContact
+  const [currentPage] = props.currentPageState ?? rootContext.currentPageState
+  const [itemCount] = props.itemCountState ?? rootContext.itemCountState
 
   const onSubmit = (ev) => {  
     ev.preventDefault()
@@ -54,12 +60,13 @@ function NewContactPopup(props) {
     const existingContact = structuredClone(contact)
     let contactData = Object.fromEntries(formData)
 
+    contactData.date_added = new Date()
     contactData.approved_by = null
 
     if (existingContact) {
       for (const key of Object.keys(contactData)) {
         existingContact[key] = contactData[key]
-      }
+      } 
 
       contactData = existingContact
     }
@@ -67,22 +74,26 @@ function NewContactPopup(props) {
     saveContactToDatabase(contactData)
       .then(async (res) => {
         const { data } = res
-        
-        await getContactsFromDatabase()
-          .then(async res => {
-            const url = new URL(document.URL)
-              
-            // @NOTE: When the pathname is /contacts, assume that updateContacts is an object
-            if (url.pathname == '/contacts') {
-              const resultingContacts = { customers: [], staffs: [], dealers: [] }
-              await getContacts(resultingContacts)
-              updateContacts(resultingContacts)
-            } else {
-              const { data } = res
-              updateContacts(data)
-            }
+        const url = new URL(document.URL)
 
-          })
+        const toUpdateContactTypes = `${contactData.contact_type}s`
+
+        // @NOTE: When the pathname is /contacts, assume that updateContacts is an object
+        if (url.pathname == '/contacts') {
+          refreshContacts([ toUpdateContactTypes ], currentPage, itemCount, searchQuery)
+            .then(res => {
+              const clonedContacts = structuredClone(contacts)
+              const { data } = res
+              clonedContacts[toUpdateContactTypes] = data[toUpdateContactTypes]
+              setContacts(clonedContacts)
+            })
+        } else if (url.pathname == '/') {
+          refreshContacts([ 'customers', 'staffs', 'dealers' ], 0, 8)
+            .then(res => {
+              const { data } = res
+              setContacts(Object.values(data).flat())
+            })
+        }
 
         if (updateExistingContact) updateExistingContact(data)
       })

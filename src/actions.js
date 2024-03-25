@@ -32,15 +32,16 @@ export {
 
   deleteLocation,
   deleteContact,
+  deleteContactSelections,
   deleteProductCategory,
   deleteProductItemSelectionByIdFromDatabase,
   deleteProduct,
   deleteSales,
 
+  refreshContacts,
+
   uploadFileToServer,
   createPublicUrlForPath,
-
-  pesoFormatter,
 }
 
 const getFullName = (contact) => {
@@ -171,6 +172,17 @@ async function deleteContact(contactData) {
       parameters: {
         id: contactData.id,
         profileUrl: contactData.profile_url,
+      },
+    },
+  })
+}
+
+async function deleteContactSelections(contacts) {
+  return DefaultClient.functions.invoke('despos_service', {
+    body: {
+      funcName: 'deleteContactSelections',
+      parameters: {
+        contacts,
       },
     },
   })
@@ -346,6 +358,19 @@ async function getStaffs(pageNumber = 0, itemCount = 10, searchQuery) {
   })
 }
 
+async function getDealers(pageNumber = 0, itemCount = 0, searchQuery) {
+  return DefaultClient.functions.invoke('despos_service', {
+    body: {
+      funcName: 'getDealers',
+      parameters: {
+        pageNumber,
+        itemCount,
+        searchQuery,
+      },
+    },
+  })
+}
+
 async function getContacts(staticContacts, pageNumber = 0, itemCount = 10, searchQuery) {
   const res = await DefaultClient.functions.invoke('despos_service', {
     body: {
@@ -367,14 +392,15 @@ async function getContacts(staticContacts, pageNumber = 0, itemCount = 10, searc
   return staticContacts
 }
 
-async function getDealers(pageNumber = 0, itemCount = 0, searchQuery) {
+function refreshContacts(contactTypes, pageNumber = 0, itemCount = 10, searchQuery) {
   return DefaultClient.functions.invoke('despos_service', {
     body: {
-      funcName: 'getDealers',
+      funcName: 'refreshContacts',
       parameters: {
         pageNumber,
         itemCount,
         searchQuery,
+        contactTypes,
       },
     },
   })
@@ -394,11 +420,6 @@ function createPublicUrlForPath(path, config) {
   if (!config) config = {}
   return DefaultClient.storage.from('images').getPublicUrl(path, config).data.publicUrl
 }
-
-const pesoFormatter = Intl.NumberFormat('en', {
-  style: 'currency',
-  currency: 'PHP',
-})
 
 const cleanContactInfo = (contact) => {
   const dateOpen = new Date(contact.date_open)

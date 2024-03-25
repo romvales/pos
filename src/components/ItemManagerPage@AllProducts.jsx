@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
-import { createPublicUrlForPath, getProductsCountFromDatabase, getProductsFromDatabase, pesoFormatter } from '../actions'
+import { createPublicUrlForPath, getProductsCountFromDatabase, getProductsFromDatabase } from '../actions'
 import { useContext, useEffect, useState } from 'react'
 import { RootContext } from '../App'
 import { Paginator } from './Paginator'
 import { debounce } from 'lodash'
+import { CurrencyFormatter } from '../locales/currencies'
 
 export { AllProducts }
 
@@ -109,7 +110,7 @@ function AllProducts(props) {
                           Price
                         </dt>
                         <dd className='mb-0 text-secondary'>
-                          <p className='mb-0' style={{ fontSize: '0.8rem' }}>{pesoFormatter.format(itemPriceLevels.at(0)?.priceLevel.price ?? 0)} ({product.item_quantity} available)</p>
+                          <p className='mb-0' style={{ fontSize: '0.8rem' }}>{CurrencyFormatter.format(itemPriceLevels.at(0)?.priceLevel.price ?? 0)} ({product.item_quantity} available)</p>
                         </dd>
                       </div>
                     </dl>

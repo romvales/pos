@@ -1,10 +1,11 @@
-import { createPublicUrlForPath, getProductByBarcodeFromDatabase, getProductsCountFromDatabase, getProductsFromDatabase, pesoFormatter } from '../actions'
+import { createPublicUrlForPath, getProductByBarcodeFromDatabase, getProductsCountFromDatabase, getProductsFromDatabase } from '../actions'
 import { useContext, useEffect, useMemo, useState } from 'react'
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/outline'
 import { addProductToSelection, deselectProductFromSelection } from './InvoiceForm'
 import { RootContext } from '../App'
 import { Paginator } from './Paginator'
 import { debounce, throttle } from 'lodash'
+import { CurrencyFormatter } from '../locales/currencies'
 
 export { ProductListing }
 
@@ -134,7 +135,7 @@ function ProductListing(props) {
                     </picture>
                     <div className='px-3 py-3'>
                       <h3 title={product.item_name} className='p-0 m-0 mb-2' style={{ fontWeight: 600, fontSize: '1.05rem' }}>
-                        <span className='text-opacity-80'>{pesoFormatter.format(defaultPriceLevel.priceLevel.price)}</span> <span style={{ fontSize: '0.9rem' }} className='text-secondary fw-normal'>({pesoFormatter.format(product.item_cost)})</span>
+                        <span className='text-opacity-80'>{CurrencyFormatter.format(defaultPriceLevel.priceLevel.price)}</span> <span style={{ fontSize: '0.9rem' }} className='text-secondary fw-normal'>({CurrencyFormatter.format(product.item_cost)})</span>
                       </h3>
                       <h3 title={product.item_name} style={{ fontSize: '0.95rem' }} className={`p-0 m-0 mb-1 ${ isAvailable ? 'text-secondary' : '' } fw-normal`}>
                         {product.item_name}

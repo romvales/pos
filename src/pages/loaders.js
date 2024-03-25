@@ -62,6 +62,7 @@ export async function ContactManagerPageDataLoader({ params, pageNumber = 0, ite
       parameters: {
         pageNumber,
         itemCount,
+        searchQuery,
       },
     }
   })).data

@@ -2,14 +2,16 @@
 import { RootContext } from '../App'
 import { PencilAltIcon } from '@heroicons/react/outline'
 import { uniqBy } from 'lodash'
-import { getFullName, pesoFormatter } from '../actions'
+import { getFullName } from '../actions'
 import { Link } from 'react-router-dom'
-import { useContext, useEffect } from 'react'
+import { createRef, useContext, useEffect } from 'react'
 import Moment from 'moment-timezone'
+import { CurrencyFormatter } from '../locales/currencies'
 
 export { Transactions }
 
 function Transactions(props) {
+  const searchRef = createRef()
   const rootContext = useContext(RootContext)
   const onClickViewSales = props.onClickViewSales
   const [collectionSales] = props.collectionSalesState
@@ -29,7 +31,7 @@ function Transactions(props) {
         <tr>
           <th className='text-secondary'>
             <div className='form-check'>
-              <input className='form-check-input' type='checkbox' value='' id='flexCheckDefault' />
+              <input ref={searchRef} className='form-check-input' type='checkbox' value='' id='flexCheckDefault' />
             </div>
           </th>
           <th className='text-secondary'>
@@ -42,7 +44,7 @@ function Transactions(props) {
             Categories
           </th>
           <th className='text-secondary'>
-            Total Sale
+            Gross Sales
           </th>
           <th colSpan={2} className='text-secondary'>
             
@@ -62,7 +64,7 @@ function Transactions(props) {
                 <picture>
                   <img src={`https://placehold.co/32?text=${fullName.split(' ').at(0)}`} className='rounded-circle' />
                 </picture>
-                <span className={`fw-semibold ${sales.customer ? '' : 'text-secondary'}`}>
+                <span className={`${sales.customer ? '' : 'text-secondary'}`}>
                   {fullName}
                 </span>
               </div>
@@ -100,7 +102,7 @@ function Transactions(props) {
                 <td className='align-middle'>
                   <div className='d-flex flex-column'>
                     <span>
-                      {pesoFormatter.format(sales.sub_total)}
+                      {CurrencyFormatter.format(sales.sub_total)}
                     </span>
                     <span style={{ fontSize: '0.6rem' }} className='text-secondary'>
                       {

@@ -3,6 +3,7 @@ import { getFullName, saveContactToDatabase } from '../actions'
 import { DefaultLayout } from '../layouts/DefaultLayout'
 import { createRef, useState } from 'react'
 import { capitalize } from 'lodash'
+import { createPortal } from 'react-dom'
 
 export {
   ContactInfoManagerPage,
@@ -43,20 +44,26 @@ function ContactInfoManagerPage(props) {
       .catch()
   }
 
+  const Breadcrumbs = () => (
+    <nav aria-label='breadcrumb'>
+      <ol className='breadcrumb'>
+        <li className='breadcrumb-item'>
+          <Link className='' to={{ pathname: '/' }}>Home</Link>
+        </li>
+        <li className='breadcrumb-item'>
+          <Link className='' to={{ pathname: '/contacts' }}>Contacts</Link>
+        </li>
+        <li className='breadcrumb-item active' aria-current='page'>
+          Edit - {getFullName(existingContact)} ({existingContact.id})
+        </li>
+      </ol>
+    </nav>
+  )
+
   return (
-    <DefaultLayout>
+    <DefaultLayout Breadcrumbs={Breadcrumbs}>
       <div className='container row justify-content-center mx-auto'>
-        <nav aria-label='breadcrumb'>
-          <ol className='breadcrumb'>
-            <li className='breadcrumb-item'>
-              <Link className='' to={{ pathname: '/' }}>Home</Link>
-            </li>
-            <li className='breadcrumb-item'>
-              <Link className='' to={{ pathname: '/contacts' }}>Contacts</Link>
-            </li>
-            <li className='breadcrumb-item active' aria-current='page'>{getFullName(existingContact)} ({existingContact.id})</li>
-          </ol>
-        </nav>
+        <Breadcrumbs />
 
         <form className='col-6 mb-4' ref={formRef} onSubmit={onSubmit}>
           <div className=''>

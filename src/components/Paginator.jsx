@@ -6,21 +6,34 @@ export { Paginator }
 function Paginator(props) {
   const rootContext = useContext(RootContext)
   const totalCount = props.totalCount
+  const onPaginate = props.onPaginate
+  const [itemCount, setItemCount] = props.itemCountState ?? rootContext.itemCountState
+  const [currentPage, setCurrentPage] = props.currentPageState ?? rootContext.currentPageState
 
-  const [pageNumber, setPageNumber] = rootContext.pageNumberState
-  const [itemCount, setItemCount] = rootContext.itemCountState
-  const [currentPage, setCurrentPage] = rootContext.currentPageState
-
-  const totalPages = useMemo(() => Math.ceil(totalCount / itemCount), [pageNumber, itemCount])
+  const totalPages = useMemo(() => Math.ceil(totalCount / itemCount), [currentPage, itemCount])
 
   useEffect(() => {
     setItemCount(props.defaultItemCount)
   })
 
+  const onClickPrevPage = () => {
+    const updatedValue = currentPage - 1
+    setCurrentPage(updatedValue)
+    
+    if (onPaginate) onPaginate(updatedValue, itemCount)
+  }
+
+  const onClickNextPage = () => {
+    const updatedValue = currentPage + 1
+    setCurrentPage(updatedValue)
+    
+    if (onPaginate) onPaginate(updatedValue, itemCount)
+  }
+
   return totalPages > 1 ?
     <ul className={`pagination mb-0 ${props.className}`.trim()}>
       <li className={`page-item ${currentPage == 0 ? 'disabled' : ''}`}>
-        <button type='button' className='page-link' onClick={() => setCurrentPage(currentPage - 1)}>
+        <button type='button' className='page-link' onClick={onClickPrevPage}>
           Prev
         </button>
       </li>
@@ -34,7 +47,7 @@ function Paginator(props) {
         })
       }
       <li className={`page-item ${currentPage == totalPages - 1 ? 'disabled' : ''}`}>
-        <button type='button' className='page-link' onClick={() => setCurrentPage(currentPage + 1)}>
+        <button type='button' className='page-link' onClick={onClickNextPage}>
           Next
         </button>
       </li>

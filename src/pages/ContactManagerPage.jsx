@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { DefaultLayout } from '../layouts/DefaultLayout'
 
 import { PlusIcon, TrashIcon } from '@heroicons/react/outline'
@@ -7,18 +7,13 @@ import { ContactTableListing } from '../components/ContactTableListing'
 import { NewContactPopup } from '../components/NewContactPopup'
 import {
   deleteLocation,
-
   getLocationsFromDatabase,
   saveLocationToDatabase,
-  getCustomers,
-  getStaffs,
-  getDealers,
-  deleteContact,
-  getContactsFromDatabase
+  deleteContactSelections,
+  refreshContacts,
 } from '../actions'
 import { Link, useLoaderData } from 'react-router-dom'
-import { debounce } from 'lodash'
-import { RootContext } from '../App'
+import { debounce, keys } from 'lodash'
 
 
 export {
@@ -28,14 +23,12 @@ export {
 function ContactManagerPage(props) {
   const {
     staticLocations,
-    staticContacts } = useLoaderData()
+    staticContacts,
+    counts } = useLoaderData()
 
-  const rootContext = useContext(RootContext)
+  const searchRef = useRef()
   const [locations, setLocations] = useState(staticLocations)
   const [contacts, setContacts] = useState(staticContacts)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [currentPage] = rootContext.currentPageState
-  const [itemCount] = rootContext.itemCountState
 
   // Used for refreshing the list of locations
   const refreshLocations = async () => {
@@ -47,27 +40,16 @@ function ContactManagerPage(props) {
       .catch()
   }
 
-  const refreshContacts = async (type) => {
+  const _refreshContacts = async (contactTypes, currentPage, itemCount) => {
     const clonedContacts = structuredClone(contacts)
+    const searchQuery = searchRef.current.value ?? ''
 
-    switch (type) {
-      case 'customers':
-        await getCustomers(currentPage, itemCount, searchQuery).then(customers => {
-          clonedContacts.customers = customers.data
-        })
-          .catch()
-      case 'staffs':
-        await getStaffs(currentPage, itemCount, searchQuery).then(staffs => {
-          clonedContacts.staffs = staffs.data
-        })
-          .catch()
-      case 'dealers':
-        await getDealers(currentPage, itemCount, searchQuery).then(dealers => {
-          clonedContacts.dealers = dealers.data
-        })
-          .catch()
-    }
-
+    await refreshContacts(contactTypes, currentPage, itemCount, searchQuery)
+      .then(res => {
+        const { data } = res
+        contactTypes.forEach(type => clonedContacts[type] = data[type])
+      })
+  
     setContacts(clonedContacts)
   }
 
@@ -97,40 +79,43 @@ function ContactManagerPage(props) {
       .catch()
   }
 
-  const onDeleteContact = (contactData, type) => {
-    deleteContact(contactData)
-      .then(
-        refreshContacts(type),
-      )
+  const onPaginate = (updatedValue, itemCount) => {
+    _refreshContacts([ 'customers', 'staffs', 'dealers' ], updatedValue, itemCount)
   }
 
-  useEffect(() => {
-    getContactsFromDatabase(null, currentPage, itemCount*3, searchQuery)
-      .then(res => {
-        const { data } = res
-        const contacts = { customers: [], staffs: [], dealers: [] }
-        data?.map(contact => contacts[`${contact.contact_type}s`].push(contact))
-        setContacts(contacts)
-      })
-  }, [ searchQuery ])
+  const onDeleteSelections = async (checkedContacts, pageNumber, itemCount) => {
+    const contactTypesToRefresh = {}
 
-  const onChange = debounce(ev => {
-    const searchQuery = ev.target.value
-    setSearchQuery(searchQuery)
-  }, 800)
+    deleteContactSelections(Object.values(checkedContacts).map(contact => {
+      const id = contact.id
+      const profile_url = contact.profile_url
+      contactTypesToRefresh[`${contact.contact_type}s`] = true
+      return { id, profile_url }
+    })) 
+      .then(() => {
+        _refreshContacts(keys(contactTypesToRefresh), pageNumber, itemCount)
+      }) 
+  }
+
+
+  const onChange = debounce(() => _refreshContacts([ 'customers', 'staffs', 'dealers' ]), 300)
+
+  const Breadcrumbs = () => (
+    <nav aria-label='breadcrumb'>
+      <ol className='breadcrumb'>
+        <li className='breadcrumb-item'>
+          <Link className='' to={{ pathname: '/' }}>Home</Link>
+        </li>
+        <li className='breadcrumb-item active' aria-current='page'>Contacts</li>
+      </ol>
+    </nav>
+  )
 
   // @PAGE_URL: /contacts
   return (
-    <DefaultLayout>
+    <DefaultLayout Breadcrumbs={Breadcrumbs}>
       <div className='container mx-auto'>
-        <nav aria-label='breadcrumb'>
-          <ol className='breadcrumb'>
-            <li className='breadcrumb-item'>
-              <Link className='' to={{ pathname: '/' }}>Home</Link>
-            </li>
-            <li className='breadcrumb-item active' aria-current='page'>Contacts</li>
-          </ol>
-        </nav>
+        <Breadcrumbs />
 
         <div className='row'>
           <div className='col'>
@@ -143,6 +128,7 @@ function ContactManagerPage(props) {
               <form className='d-flex flex-grow-1'>
                 <div className='flex-fill'>
                   <input
+                    ref={searchRef}
                     name='searchQuery'
                     type='text'
                     className='form-control'
@@ -153,15 +139,16 @@ function ContactManagerPage(props) {
             </section>
 
             <section>
-              <div className='grid'>
+              <div className='d-grid gap-2'>
                 <div>
                   <h3 className='fs-3 fw-semibold'>Customers</h3>
                   <ContactTableListing
                     type='customers'
-                    searchQuery={searchQuery}
                     locations={locations}
                     contacts={contacts}
-                    onDeleteContact={onDeleteContact}></ContactTableListing>
+                    totalContacts={counts?.customersCount}
+                    onPaginate={onPaginate}
+                    onDeleteSelections={onDeleteSelections}></ContactTableListing>
                 </div>
                 <div>
                   <h3 className='fs-3 fw-semibold'>Staffs</h3>
@@ -169,16 +156,19 @@ function ContactManagerPage(props) {
                     type='staffs'
                     locations={locations}
                     contacts={contacts}
-                    onDeleteContact={onDeleteContact}></ContactTableListing>
+                    totalContacts={counts?.staffsContact}
+                    onPaginate={onPaginate}
+                    onDeleteSelections={onDeleteSelections}></ContactTableListing>
                 </div>
                 <div>
                   <h3 className='fs-3 fw-semibold'>Dealers</h3>
                   <ContactTableListing
                     type='dealers'
-                    searchQuery={searchQuery}
                     locations={locations}
                     contacts={contacts}
-                    onDeleteContact={onDeleteContact}></ContactTableListing>
+                    totalContacts={counts?.dealersCount}
+                    onPaginate={onPaginate}
+                    onDeleteSelections={onDeleteSelections}></ContactTableListing>
                 </div>
               </div>
             </section>
@@ -238,7 +228,8 @@ function ContactManagerPage(props) {
         <NewContactPopup
           title='Add Contact'
           locations={locations}
-          updateContacts={setContacts}></NewContactPopup>
+          updateContacts={setContacts}
+          contactsState={[contacts, setContacts]}></NewContactPopup>
       </div>
     </DefaultLayout>
   )

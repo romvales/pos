@@ -1,6 +1,6 @@
 import { Link, useLoaderData } from 'react-router-dom'
 import { useContext, useEffect } from 'react'
-import { deleteSales, getFullName, getSalesCountFromDatabase, pesoFormatter } from '../actions'
+import { deleteSales, getFullName, getSalesCountFromDatabase } from '../actions'
 import { DefaultLayout } from '../layouts/DefaultLayout'
 import { useState } from 'react'
 import { InvoiceForm, defaultSale } from '../components/InvoiceForm'
@@ -20,6 +20,7 @@ function SalesManagerPage(props) {
   const { staticSales } = useLoaderData()
 
   const rootContext = useContext(RootContext)
+
   const [collectionSales, setCollectionSales] = useState(staticSales)
   const [selectedSales, setSelectedSales] = useState(structuredClone(defaultSale))
   const [selectedCustomer, setSelectedCustomer] = useState()
@@ -93,23 +94,23 @@ function SalesManagerPage(props) {
     const searchQuery = ev.target.value
     setSearchQuery(searchQuery)
   }, 800)
+  
+  const Breadcrumbs = () => (
+    <nav aria-label='breadcrumb'>
+      <ol className='breadcrumb'>
+        <li className='breadcrumb-item'>
+          <Link className='' to={{ pathname: '/' }}>Home</Link>
+        </li>
+        <li className='breadcrumb-item active' aria-current='page'>Sales</li>
+      </ol>
+    </nav>
+  )
 
   // @PAGE_URL: /sales
   return (
-    <DefaultLayout>
+    <DefaultLayout Breadcrumbs={Breadcrumbs}>
       <div className='container mx-auto'>
-        <nav aria-label='breadcrumb'>
-          <ol className='breadcrumb'>
-            <li className='breadcrumb-item'>
-              <Link className='' to={{ pathname: '/' }}>Home</Link>
-            </li>
-            <li className='breadcrumb-item active' aria-current='page'>Sales</li>
-          </ol>
-        </nav>
-
-        <div className='row'>
-          Overview Hero
-        </div>
+        <Breadcrumbs />
 
         <div className='row gap-3'>
           <section className='col-xl-3 col-md-4'>
@@ -125,7 +126,7 @@ function SalesManagerPage(props) {
 
           </section>
           <section className='col-xl-8 col-md-7'>
-            <h1 className='fs-3 fw-semibold mb-4'>All transactions</h1>
+            <h1 className='fs-3 fw-semibold mb-4'>Sales history</h1>
 
             <nav className='mb-3 row'>
               <form className='col'>

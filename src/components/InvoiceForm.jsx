@@ -3,12 +3,13 @@ import { SelectorIcon, XIcon, CashIcon, PencilAltIcon, BookmarkIcon, PlusCircleI
 import { CashPaymentForm } from '../components/CashPaymentForm'
 import { useLoaderData } from 'react-router-dom'
 import { createRef, useContext, useEffect, useMemo, useState } from 'react'
-import { getFullName, pesoFormatter, saveSalesToDatabase } from '../actions'
+import { getFullName, saveSalesToDatabase } from '../actions'
 
 import { OrderSummaryItem } from '../components/OrderSummaryItem'
 import { NewContactPopup } from '../components/NewContactPopup'
 import { ContactSelector } from './ContactSelector'
 import { RootContext } from '../App'
+import { CurrencyFormatter } from '../locales/currencies'
 
 export { InvoiceForm }
 
@@ -362,7 +363,7 @@ function InvoiceForm(props) {
                   Subtotal
                 </dt>
                 <dd className='mb-0'>
-                  {pesoFormatter.format(sales.sub_total)}
+                  {CurrencyFormatter.format(sales.sub_total)}
                 </dd>
               </div>
 
@@ -371,7 +372,7 @@ function InvoiceForm(props) {
                   Tax
                 </dt>
                 <dd className='mb-0 text-secondary'>
-                  {pesoFormatter.format(sales.tax_amount)}
+                  {CurrencyFormatter.format(sales.tax_amount)}
                 </dd>
               </div>
 
@@ -380,7 +381,7 @@ function InvoiceForm(props) {
                   Discount
                 </dt>
                 <dd className='mb-0 text-secondary'>
-                  {pesoFormatter.format(sales.discount_amount)}
+                  {CurrencyFormatter.format(sales.discount_amount)}
                 </dd>
               </div>
 
@@ -391,7 +392,7 @@ function InvoiceForm(props) {
                   Total
                 </dt>
                 <dd className='fs-5'>
-                  {pesoFormatter.format(sales.total_due)}
+                  {CurrencyFormatter.format(sales.total_due)}
                 </dd>
               </div>
             </dl>
@@ -456,13 +457,13 @@ function InvoiceForm(props) {
               <button
                 type='submit'
                 className='flex-grow-1 btn btn-primary btn-pill p-3 d-flex justify-content-center align-items-center gap-1'
-                disabled={!isValid}>
+                disabled={!isValid || !sales.id}>
                 <span className='fs-5'>Save Transaction</span>
               </button>
               <button
                 type='button'
                 className='flex-grow-1 btn btn-outline-secondary btn-pill p-3 d-flex justify-content-center align-items-center gap-1'
-                disabled={!isValid}
+                disabled={!isValid || !sales.id}
                 onClick={onClickRefund}>
                 <span className='fs-5'>Refund</span>
               </button>
@@ -473,8 +474,7 @@ function InvoiceForm(props) {
       <NewContactPopup
         isReadOnlyCustomerType={true}
         locations={staticLocations}
-        contacts={contacts}
-        updateContacts={setContacts}
+        contactsState={[contacts, setContacts]}
         existingContact={selectedCustomer}
         updateExistingContact={setSelectedCustomer}></NewContactPopup>
 

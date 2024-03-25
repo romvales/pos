@@ -3,9 +3,10 @@ import {
   MinusIcon,
   PlusIcon
 } from '@heroicons/react/outline'
-import { createPublicUrlForPath, getDealerName, getFullName, pesoFormatter } from '../actions'
-import { useEffect, useState } from 'react'
+import { createPublicUrlForPath } from '../actions'
+import { useEffect } from 'react'
 import { deselectProductFromSelection } from './InvoiceForm'
+import { CurrencyFormatter } from '../locales/currencies'
 
 export { OrderSummaryItem }
 
@@ -162,7 +163,7 @@ function OrderSummaryItem(props) {
                     selection?.price_level_id != null ?
                       `Revert`
                       :
-                      `Use ${pesoFormatter.format(selectedPriceLevel?.priceLevel?.price)} (Lvl. ${selectedCustomerPriceLevel})`
+                      `Use ${CurrencyFormatter.format(selectedPriceLevel?.priceLevel?.price)} (Lvl. ${selectedCustomerPriceLevel})`
                   }
                 </button>
                 :
@@ -173,12 +174,12 @@ function OrderSummaryItem(props) {
 
           <div className='d-flex flex-column justify-content-between align-items-end'>
             <div className=''>
-              <output className='text-secondary'>{pesoFormatter.format(selection?.cost)}</output>
+              <output className='text-secondary'>{CurrencyFormatter.format(selection?.cost)}</output>
             </div>
           </div>
         </div>
         <div className=''>
-          <output className='fw-bold'>{pesoFormatter.format(selection?.price)}</output>
+          <output className='fw-bold'>{CurrencyFormatter.format(selection?.price)}</output>
         </div>
       </div>
     </li>
