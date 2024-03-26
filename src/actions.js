@@ -37,6 +37,7 @@ export {
   deleteProductItemSelectionByIdFromDatabase,
   deleteProduct,
   deleteSales,
+  deleteSalesSelections,
 
   refreshContacts,
 
@@ -67,7 +68,7 @@ async function getLocationsFromDatabase() {
   })
 }
 
-async function getContactsFromDatabase(contactType, pageNumber = 0, itemCount = 10, searchQuery) {
+async function getContactsFromDatabase(contactType, pageNumber = 0, itemCount = 10, searchQuery, dontPaginateContacts) {
   return DefaultClient.functions.invoke('despos_service', {
     body: {
       funcName: 'getContactsFromDatabase',
@@ -76,6 +77,7 @@ async function getContactsFromDatabase(contactType, pageNumber = 0, itemCount = 
         pageNumber,
         itemCount,
         searchQuery,
+        dontPaginateContacts,
       },
     },
   })
@@ -228,6 +230,17 @@ async function deleteSales(salesData) {
       funcName: 'deleteSales',
       parameters: {
         id: salesData.id,
+      },
+    },
+  })
+}
+
+async function deleteSalesSelections(sales) {
+  return DefaultClient.functions.invoke('despos_service', {
+    body: {
+      funcName: 'deleteSalesSelections',
+      parameters: {
+        sales,
       },
     },
   })

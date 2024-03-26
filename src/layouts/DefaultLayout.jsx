@@ -17,9 +17,9 @@ function DefaultLayout(props) {
   const [isVisible] = rootContext.loadingBarState
 
   return (
-    <>
+    <div className='d-flex h-100'>
       {/* <MediaDevice></MediaDevice> */}
-      <header className='sticky-top'>
+      {/* <header className='sticky-top'>
         {
           isVisible ?
             <div className='progress rounded-0 fixed-top bg-transparent'>
@@ -66,20 +66,45 @@ function DefaultLayout(props) {
           </div>
         </nav>
 
-      </header>
+      </header> */}
 
-      {
-        AsidedContent ?
-          <aside id='topAsideContent'>
-            <AsidedContent Breadcrumbs={Breadcrumbs} />
-          </aside>
-          :
-          <></>
-      }
+      <nav className='p-4 position-relative border-end'>
+        <div className='sticky-top'>
+          <Link className='navbar-brand' to={{ pathname: '/' }}>
+            <h1 className='fw-bold fs-5 text-primary'>despos</h1>
+          </Link>
 
-      <main className='mt-3 position-relative'>
-        {props.children}
-      </main>
-    </>
+          <ul className='list-unstyled'>
+            <li className='nav-item active'>
+              <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} to={{ pathname: '/stocks' }}>Stocks</Link>
+            </li>
+            <li className='nav-item'>
+              <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} to={{ pathname: '/contacts' }}>Contacts</Link>
+            </li>
+            <li className='nav-item'>
+              <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} to={{ pathname: '/settings' }}>Settings</Link>
+            </li>
+            <li className='nav-item'>
+              <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} aria-current='page' to={{ pathname: '/sales' }}>Sales</Link>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <div className='flex-grow-1 h-100' style={{ overflow: 'scroll' }}>
+        {
+          AsidedContent ?
+            <aside id='topAsideContent'>
+              <AsidedContent Breadcrumbs={Breadcrumbs} />
+            </aside>
+            :
+            <></>
+        }
+
+        <main className='mt-3 position-relative'>
+          {props.children}
+        </main>
+      </div>
+    </div>
   )
 }

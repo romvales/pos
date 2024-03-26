@@ -42,6 +42,7 @@ export {
   deleteProductItemSelectionByIdFromDatabase,
   deleteProduct,
   deleteSales,
+  deleteSalesSelections,
 
   refreshContacts,
 
@@ -68,7 +69,7 @@ async function ContactInfoManagerPageDataLoader(DefaultClient, parameters) {
   return {
     data: {
       staticContact: structuredClone(staticContact),
-      staticLocations,
+      staticLocations
     }
   }
 }
@@ -146,6 +147,7 @@ async function ItemManagerProductInfoPageDataLoader(DefaultClient, parameters) {
 }
 
 async function SalesManagerPageDataLoader(DefaultClient, parameters) {
+  const { fetchOnlySales } = parameters
   const staticSales = []
 
   // Explanation: Gets all sales from the database along with other related data (sales, order summary items, customer)
@@ -179,6 +181,14 @@ async function SalesManagerPageDataLoader(DefaultClient, parameters) {
       const { data } = res
       staticSales.push(...(data ?? []))
     })
+
+  if (fetchOnlySales) {
+    return {
+      data: {
+        staticSales,
+      },
+    }
+  }
 
   const { staticCustomers, staticInvoiceTypes, staticLocations } = (await SalesRegisterPageDataLoader(DefaultClient, parameters)).data
 
@@ -242,23 +252,25 @@ function getLocationsFromDatabase(DefaultClient) {
 }
 
 function getContactsFromDatabase(DefaultClient, parameters) {
-  const { contactType, pageNumber, itemCount, searchQuery } = parameters
+  const { contactType, pageNumber, itemCount, searchQuery, dontPaginateContacts } = parameters
 
   let query;
 
   if (!contactType) {
-    query = DefaultClient.from('contacts').select(`*, full_name`)
+    query = DefaultClient.from('contacts').select(`*, full_name, approved_by(id, full_name)`)
   } else {
-    query = DefaultClient.from('contacts').select(`*, full_name`).match({ contact_type: contactType })
+    query = DefaultClient.from('contacts').select(`*, full_name, approved_by(id, full_name)`).match({ contact_type: contactType })
   }
-
-  query = query.order('date_added', { ascending: false })
 
   if (searchQuery && searchQuery.length) {
     query = query.textSearch('full_name', searchQuery)
   }
 
-  query = query.range(pageNumber*(itemCount-1)+(pageNumber > 0 ? 1 : 0), itemCount*(pageNumber+1)-1)
+  if (!dontPaginateContacts)
+    query = query
+      .range(pageNumber*(itemCount-1)+(pageNumber > 0 ? 1 : 0), itemCount*(pageNumber+1)-1)
+
+  query = query.order('date_added', { ascending: false })
 
   return query.then(res => {
       res.data = res.data?.map(cleanContactInfo)
@@ -293,7 +305,7 @@ async function getContactsCountByTypeFromDatabase(DefaultClient) {
 async function getContactByIdFromDatabase(DefaultClient, parameters) {
   const { id } = parameters
 
-  const res = await DefaultClient.from('contacts').select().match({ id }).single()
+  const res = await DefaultClient.from('contacts').select(`*, full_name, approved_by(id, full_name)`).match({ id }).single()
   res.data = cleanContactInfo(res.data)
   return res
 }
@@ -307,13 +319,15 @@ function getSalesFromDatabase(DefaultClient, parameters) {
 
   let query = DefaultClient.from('sales')
     .select(customSelect ?? '*')
-    .order('sales_date', { ascending: false })
 
   if (searchQuery && searchQuery.length) {
     
   }
 
-  query = query.range(pageNumber*(itemCount-1)+(pageNumber > 0 ? 1 : 0), itemCount*(pageNumber+1)-1)
+  query = query
+    .range(pageNumber*(itemCount-1)+(pageNumber > 0 ? 1 : 0), itemCount*(pageNumber+1)-1)
+    .order('sales_date', { ascending: false })
+
   return query
 }
 
@@ -408,6 +422,14 @@ function deleteSales(DefaultClient, parameters) {
     .eq('id', id)
 }
 
+function deleteSalesSelections(DefaultClient, parameters) {
+  const { sales } = parameters
+
+  return DefaultClient.from('sales')
+    .delete()
+    .in('id', sales.map(sales => sales.id))
+}
+
 function saveLocationToDatabase(DefaultClient, parameters) {
   const { location } = parameters
 
@@ -421,7 +443,14 @@ function saveContactToDatabase(DefaultClient, parameters) {
   else contactData.birthdate = new Date(contactData.birthdate)
   contactData.date_open = new Date(contactData.date_open)
 
+  delete contactData.full_name
+
+  if (contactData.approved_by && !contactData.approved_by?.length) {
+    delete contactData.approved_by
+  }
+
   return DefaultClient.from('contacts').upsert(contactData, { onConflict: 'id' }).select().single().then(res => {
+    console.log(res)
     res.data = cleanContactInfo(res.data)
     return res
   })
@@ -450,7 +479,7 @@ function saveSalesToDatabase(DefaultClient, parameters) {
         for (const selection of (sales.selections.toDelete) ?? []) {
           const product = selection.product ?? {}
 
-          product.item_sold -= selection.deducted_quantity
+          product.item_sold = product.default_item_sold - selection.deducted_quantity
           product.item_quantity = product.default_item_quantity + selection.deducted_quantity
 
           // Delete unrelated fields
@@ -458,6 +487,7 @@ function saveSalesToDatabase(DefaultClient, parameters) {
           delete product.dealer
           delete product.itemPriceLevels
           delete product.default_item_quantity
+          delete product.default_item_sold
 
           toPerform.push(
             saveProductToDatabase(DefaultClient,{ productData: product }),
@@ -475,15 +505,24 @@ function saveSalesToDatabase(DefaultClient, parameters) {
           toSave.sales_id = savedSales.id
 
           // @FEATURE: When sale is already paid, make sure that the product quantities are updated.
+          // Reset the product quantity and sold stats
           if (savedSales.sales_status == 'paid') {
-            product.item_sold += toSave.quantity
-            product.item_quantity -= toSave.quantity
+            product.item_sold += clonedSales.id ? toSave.added_quantity : toSave.quantity
+            product.item_quantity -= clonedSales.id ? toSave.added_quantity : toSave.quantity
+            
+            if ((toSave.deducted_quantity -= toSave.added_quantity) < 0) {
+              toSave.deducted_quantity = 0
+            }
           } else if (savedSales.sales_status == 'refunded') {
             product.item_sold -= toSave.quantity
             product.item_quantity = product.default_item_quantity + toSave.quantity
           } else if (savedSales.sales_status == 'return') {
-            product.item_sold -= toSave.deducted_quantity
+            product.item_sold = product.default_item_sold - toSave.deducted_quantity
             product.item_quantity = product.default_item_quantity + toSave.deducted_quantity
+
+            if ((toSave.added_quantity -= toSave.deducted_quantity) < 0) {
+              toSave.added_quantity = 0
+            }
           }
 
           // Delete unrelated fields
@@ -491,13 +530,13 @@ function saveSalesToDatabase(DefaultClient, parameters) {
           delete product.dealer
           delete product.itemPriceLevels
           delete product.default_item_quantity
+          delete product.default_item_sold
 
           if (product.id) {
             toPerform.push(saveProductToDatabase(DefaultClient, { productData: product }))
           }
 
           // Delete unnecessary fields
-          delete toSave.deducted_quantity
           delete toSave.product
           delete toSave.item_index
           delete toSave.item
@@ -508,7 +547,6 @@ function saveSalesToDatabase(DefaultClient, parameters) {
       }
 
       await Promise.all(toPerform)
-
       return res
     })
     .catch()
@@ -521,6 +559,8 @@ function saveProductToDatabase(DefaultClient, parameters) {
   const priceLevels = productData.priceLevels ?? []
 
   delete clonedProduct.priceLevels
+
+  if (!clonedProduct.date_added) clonedProduct.date_added = new Date()
 
   return DefaultClient.from('items').upsert(clonedProduct, { onConflict: 'id' })
     .then(async res => {
@@ -613,6 +653,7 @@ function getProductsFromDatabase(DefaultClient, parameters) {
   }
     
   query = query.range(pageNumber*(itemCount-1)+(pageNumber > 0 ? 1 : 0), itemCount*(pageNumber+1)-1)
+    .order('date_added', { ascending: false })
 
   return query
 }

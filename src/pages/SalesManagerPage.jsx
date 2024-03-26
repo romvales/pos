@@ -1,6 +1,6 @@
 import { Link, useLoaderData } from 'react-router-dom'
-import { useContext, useEffect } from 'react'
-import { deleteSales, getFullName, getSalesCountFromDatabase } from '../actions'
+import { createRef, useEffect } from 'react'
+import { deleteSales, deleteSalesSelections, getSalesCountFromDatabase } from '../actions'
 import { DefaultLayout } from '../layouts/DefaultLayout'
 import { useState } from 'react'
 import { InvoiceForm, defaultSale } from '../components/InvoiceForm'
@@ -19,30 +19,30 @@ const salesCount = (await getSalesCountFromDatabase()).data
 function SalesManagerPage(props) {
   const { staticSales } = useLoaderData()
 
-  const rootContext = useContext(RootContext)
-
+  const searchRef = createRef()
   const [collectionSales, setCollectionSales] = useState(staticSales)
   const [selectedSales, setSelectedSales] = useState(structuredClone(defaultSale))
   const [selectedCustomer, setSelectedCustomer] = useState()
-  const [searchQuery, setSearchQuery] = useState('')
   const [recalculate, setRecalculate] = useState()
-  const [currentPage] = rootContext.currentPageState
-  const [itemCount] = rootContext.itemCountState
 
-  const refreshCollections = () => {
-    SalesManagerPageDataLoader({ pageNumber: currentPage, itemCount, searchQuery })
+  const [currentPage, setCurrentPage] = useState(0)
+  const [itemCount, setItemCount] = useState(16)
+
+  const refreshCollections = (searchQuery, updatedValue, overrideItemCount) => {
+    SalesManagerPageDataLoader(
+      {
+        pageNumber: updatedValue ?? currentPage,
+        itemCount: overrideItemCount ?? itemCount,
+        searchQuery,
+        fetchOnlySales: true
+      },
+    )
       .then(({ staticSales }) => {
         cleanUpCollectionAndSetState(staticSales)
       })
   }
 
-  // @FEATURE: Deletes a sale from the database
-  const onDeleteTransaction = (sale) => {
-    deleteSales(sale)
-      .then(
-        () => refreshCollections()
-      )
-  }
+
 
   // @FEATURE: Change the selected sales to display in the invoice form
   const onClickViewSales = (sales) => {
@@ -50,12 +50,20 @@ function SalesManagerPage(props) {
     setSelectedCustomer(sales.customer)
   }
 
+  // @FEATURE: Deletes all selected sales from the database
+  const onDeleteSelections = (checkedSales, currentPage, itemCount) => {
+    return deleteSalesSelections(Object.values(checkedSales).map(sales => ({ id: sales.id })))
+      .then(() => {
+        refreshCollections(searchRef.current?.value, currentPage, itemCount)
+      })
+  }
+
   const onSubmitSuccess = () => {
-    refreshCollections()
+    refreshCollections(searchRef.current?.value)
   }
 
   const onSaveSuccess = () => {
-    refreshCollections()
+    refreshCollections(searchRef.current?.value)
   }
 
   const cleanUpCollectionAndSetState = (collections) => {
@@ -74,6 +82,7 @@ function SalesManagerPage(props) {
       for (const selection of sales.selections) {
         const product = selection.product ?? {}
         product.default_item_quantity = product.item_quantity
+        product.default_item_sold = product.item_sold
         product.item_quantity += selection.quantity
         selections[selection.product?.id] = selection
       }
@@ -84,17 +93,17 @@ function SalesManagerPage(props) {
 
     setCollectionSales(cleanedCollection)
   }
-  
-  useEffect(() => { 
-    if (itemCount < 10) return
-    refreshCollections()
-  }, [ searchQuery ])
 
-  const onChange = debounce(ev => {
-    const searchQuery = ev.target.value
-    setSearchQuery(searchQuery)
-  }, 800)
-  
+  const onChange = debounce(() => {
+    const searchQuery = searchRef.current?.value
+    refreshCollections(searchQuery)
+  }, 300)
+
+  const onPaginate = (updatedValue, itemCount) => {
+    const searchQuery = searchRef.current.value
+    refreshCollections(searchQuery, updatedValue, itemCount)
+  }
+
   const Breadcrumbs = () => (
     <nav aria-label='breadcrumb'>
       <ol className='breadcrumb'>
@@ -106,6 +115,10 @@ function SalesManagerPage(props) {
     </nav>
   )
 
+  useEffect(() => {
+    cleanUpCollectionAndSetState(staticSales)
+  }, [])
+
   // @PAGE_URL: /sales
   return (
     <DefaultLayout Breadcrumbs={Breadcrumbs}>
@@ -113,36 +126,43 @@ function SalesManagerPage(props) {
         <Breadcrumbs />
 
         <div className='row gap-3'>
-          <section className='col-xl-3 col-md-4'>
-            <InvoiceForm
-              persistPriceLevel={true}
-              selectedCustomerState={[selectedCustomer, setSelectedCustomer]}
-              salesState={[selectedSales, setSelectedSales]}
-              originalState={structuredClone(collectionSales.find(sales => sales.invoice_no == selectedSales.invoice_no))}
-              recalculator={[recalculate, setRecalculate]}
-              onSubmitSuccess={onSubmitSuccess}
-              onSaveSuccess={onSaveSuccess}
-              actionType={'custom'} />
-
-          </section>
           <section className='col-xl-8 col-md-7'>
             <h1 className='fs-3 fw-semibold mb-4'>Sales history</h1>
 
             <nav className='mb-3 row'>
               <form className='col'>
-                <input className='form-control' placeholder='Search for an invoice...' onChange={onChange} />
+                <input ref={searchRef} className='form-control' placeholder='Search for an invoice...' onChange={onChange} />
               </form>
               <div className='col-auto'>
-                <Paginator totalCount={salesCount} defaultItemCount={10}></Paginator>
+                <Paginator
+                  totalCount={salesCount}
+                  defaultItemCount={16}
+                  itemCountState={[itemCount, setItemCount]}
+                  currentPageState={[currentPage, setCurrentPage]}
+                  onPaginate={onPaginate}></Paginator>
               </div>
             </nav>
 
             <Transactions
-              searchQueryState={[searchQuery, setSearchQuery]}
               collectionSalesState={[collectionSales, setCollectionSales]}
               onClickViewSales={onClickViewSales}
-              onDeleteTransaction={onDeleteTransaction}
-              refreshCollections={refreshCollections} />
+              onDeleteSelections={onDeleteSelections}
+              refreshCollections={refreshCollections}
+              currentPageState={[currentPage, setCurrentPage]}
+              itemCountState={[itemCount, setItemCount]} />
+          </section>
+
+          <section className='col-xl-3 col-md-4'>
+            <InvoiceForm
+              persistPriceLevel={true}
+              selectedCustomerState={[selectedCustomer, setSelectedCustomer]}
+              salesState={[selectedSales, setSelectedSales]}
+              originalState={structuredClone(collectionSales.find(sales => sales.invoice_no === selectedSales.invoice_no))}
+              recalculator={[recalculate, setRecalculate]}
+              onSubmitSuccess={onSubmitSuccess}
+              onSaveSuccess={onSaveSuccess}
+              actionType={'custom'} />
+
           </section>
         </div>
       </div>

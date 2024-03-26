@@ -86,14 +86,14 @@ function ContactManagerPage(props) {
   const onDeleteSelections = async (checkedContacts, pageNumber, itemCount) => {
     const contactTypesToRefresh = {}
 
-    deleteContactSelections(Object.values(checkedContacts).map(contact => {
+    return deleteContactSelections(Object.values(checkedContacts).map(contact => {
       const id = contact.id
       const profile_url = contact.profile_url
       contactTypesToRefresh[`${contact.contact_type}s`] = true
       return { id, profile_url }
     })) 
       .then(() => {
-        _refreshContacts(keys(contactTypesToRefresh), pageNumber, itemCount)
+        return _refreshContacts(keys(contactTypesToRefresh), pageNumber, itemCount)
       }) 
   }
 

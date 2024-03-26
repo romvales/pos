@@ -15,7 +15,7 @@ export async function SalesRegisterPageDataLoader({ params, pageNumber = 0, item
 }
 
 // @DATALOADER: staticSales
-export async function SalesManagerPageDataLoader({ pageNumber = 0, itemCount = 10, searchQuery }) {
+export async function SalesManagerPageDataLoader({ pageNumber = 0, itemCount = 16, searchQuery, fetchOnlySales }) {
   return (await DefaultClient.functions.invoke('despos_service', {
     body: {
       funcName: 'SalesManagerPageDataLoader',
@@ -23,6 +23,7 @@ export async function SalesManagerPageDataLoader({ pageNumber = 0, itemCount = 1
         pageNumber,
         itemCount,
         searchQuery,
+        fetchOnlySales,
       },
     }
   })).data
@@ -35,6 +36,7 @@ export async function ItemManagerProductInfoPageDataLoader({ params }) {
       parameters: {
         id: params.id,
         product_name: params.product_name,
+        dontPaginateContacts: true,
       },
     }
   })).data

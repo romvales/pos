@@ -93,7 +93,7 @@ function InvoiceForm(props) {
   const [contacts, setContacts] = useState(staticCustomers)
   const [recalculate, setRecalculate] = props.recalculator
   const [selectedCustomer, setSelectedCustomer] = props.selectedCustomerState ?? useState()
-  const [sales, setSales] = props.salesState
+  const [sales, setSales] = props.salesState ?? useState(defaultSale())
   const persistPriceLevel = props.persistPriceLevel
   const originalState = props.originalState
   const actionType = props.actionType ?? ''
@@ -194,9 +194,6 @@ function InvoiceForm(props) {
     clone.change_due = clone.amount_paid-clone.total_due
     setSales(clone)
   }
-
-  // Sorts the items in the summary
-  const sortFn = (a, b) => a.item_index < b.item_index
 
   // @FEATURE: Check all required properties if populated before enabling the form
   const isValid = useMemo(() => {
@@ -335,7 +332,7 @@ function InvoiceForm(props) {
 
             <ul className='d-flex flex-column gap-1 list-unstyled mb-0'>
               {
-                Object.values(sales.selections).sort(sortFn).map((selection, i) => {
+                Object.values(sales.selections).map((selection, i) => {
                   // @NOTE: Ignore the added selections.toDelete array
                   if (selection instanceof Array) {
                     return

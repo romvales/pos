@@ -1,9 +1,10 @@
 import { Link, useLoaderData } from 'react-router-dom'
 import { getFullName, saveContactToDatabase } from '../actions'
 import { DefaultLayout } from '../layouts/DefaultLayout'
-import { createRef, useState } from 'react'
+import { createRef, useContext, useState } from 'react'
 import { capitalize } from 'lodash'
 import { createPortal } from 'react-dom'
+import { RootContext } from '../App'
 
 export {
   ContactInfoManagerPage,
@@ -16,9 +17,11 @@ function ContactInfoManagerPage(props) {
   const { staticContact, staticLocations } = useLoaderData()
 
   const formRef = createRef()
+  const rootContext = useContext(RootContext)
   const isReadOnlyCustomerType = props.isReadOnlyCustomerType
   const [locations] = useState(staticLocations)
   const [existingContact, setExistingContact] = useState(staticContact)
+  const [staticStaffs] = rootContext.staticStaffsState
 
   const onSubmit = (ev) => {
     ev.preventDefault()
@@ -26,9 +29,13 @@ function ContactInfoManagerPage(props) {
     const formData = new FormData(formRef.current)
     let contactData = Object.fromEntries(formData)
 
-    contactData.approved_by = null
+    const approvedBy = staticStaffs[contactData.approved_by]
 
-    // @
+    if (approvedBy)
+      contactData.approved_by = approvedBy.id
+    else
+      contactData.approved_by = null
+    
     if (existingContact) {
       for (const key of Object.keys(contactData)) {
         existingContact[key] = contactData[key]
@@ -105,8 +112,8 @@ function ContactInfoManagerPage(props) {
                 </div>
                 <div className='col'>
                   <div className='form-floating'>
-                    <input type='number' name='price_level' defaultValue={existingContact?.price_level ?? 0} className='form-control' id='priceLevelInput' required />
-                    <label htmlFor='priceLevelInput'  >Price Level</label>
+                    <input type='number' name='price_level' defaultValue={existingContact?.price_level?.toString() ?? 1} min={1} className='form-control' id='priceLevelInput' required />
+                    <label htmlFor='priceLevelInput'>Price Level</label>
                   </div>
                 </div>
               </div>
@@ -280,8 +287,26 @@ function ContactInfoManagerPage(props) {
 
               <div className='mb-2'>
                 <div className='form-floating'>
-                  <input name='approved_by' className='form-control' id='remarksInput' />
+                  <input 
+                    name='approved_by' 
+                    className='form-control' 
+                    id='remarksInput' 
+                    list='staffsOptions' 
+                    defaultValue={existingContact?.approved_by ? `${existingContact?.approved_by?.full_name} (${existingContact?.approved_by?.id})` : ''} />
                   <label htmlFor='remarksInput'>Approved By</label>
+                  <datalist id='staffsOptions'>
+                    {
+                      Object.values(staticStaffs).map((staff, i) => {
+                        const staffName = `${staff.full_name} (${staff.id})`
+
+                        return (
+                          <option key={i} value={staffName}>
+                            {staffName}
+                          </option>
+                        )
+                      })
+                    }
+                  </datalist>
                 </div>
               </div>
 

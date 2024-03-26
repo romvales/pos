@@ -4,7 +4,7 @@ import { getFullName } from '../actions'
 import { Link } from 'react-router-dom'
 import { Paginator } from './Paginator'
 import Moment from 'moment-timezone'
-import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { TrashIcon } from '@heroicons/react/outline'
 
 export { ContactTableListing }
@@ -16,7 +16,6 @@ function ContactTableListing(props) {
   const totalContacts = props.totalContacts
   const selectedContacts = contacts[type]
   const onPaginate = props.onPaginate
-  const onDeleteSelections = props.onDeleteSelections
   const [currentPage, setCurrentPage] = useState(0)
   const [itemCount, setItemCount] = useState(10)
   const [checkedContacts, setCheckedContacts] = useState({})
@@ -36,6 +35,13 @@ function ContactTableListing(props) {
       setCheckedContacts({})
     }
 
+  }
+
+  const onDeleteSelections = () => {
+    props.onDeleteSelections(checkedContacts, currentPage, itemCount).then(() => {
+      // Clear out selected items so that the selection tools will be hidden back.
+      setCheckedContacts({})
+    })
   }
 
   const onCheckContact = (ev, _checkedContacts, contact) => {
@@ -77,7 +83,7 @@ function ContactTableListing(props) {
                     <span className='d-inline-block text-secondary' style={{ fontSize: '0.9rem' }}>Selection tools:</span>
                   </li>
                   <li>
-                    <button className='btn btn-sm text-danger p-1 d-flex gap-1 align-items-center' onClick={() => onDeleteSelections(checkedContacts, currentPage, itemCount)}>
+                    <button className='btn btn-sm text-danger p-1 d-flex gap-1 align-items-center' onClick={() => onDeleteSelections()}>
                       <TrashIcon width={16} /> Delete
                     </button>
                   </li>

@@ -51,8 +51,9 @@ function NewContactPopup(props) {
   const updateExistingContact = props.updateExistingContact
   const [currentPage] = props.currentPageState ?? rootContext.currentPageState
   const [itemCount] = props.itemCountState ?? rootContext.itemCountState
+  const [staticStaffs] = rootContext.staticStaffsState
 
-  const onSubmit = (ev) => {  
+  const onSubmit = (ev) => {
     ev.preventDefault()
 
     const formData = new FormData(formRef.current)
@@ -60,13 +61,21 @@ function NewContactPopup(props) {
     const existingContact = structuredClone(contact)
     let contactData = Object.fromEntries(formData)
 
-    contactData.date_added = new Date()
-    contactData.approved_by = null
+    if (!contactData.date_added) {
+      contactData.date_added = new Date()
+    }
+
+    const approvedBy = staticStaffs[contactData.approved_by]
+
+    if (approvedBy)
+      contactData.approved_by = approvedBy.id
+    else
+      contactData.approved_by = null
 
     if (existingContact) {
       for (const key of Object.keys(contactData)) {
         existingContact[key] = contactData[key]
-      } 
+      }
 
       contactData = existingContact
     }
@@ -80,7 +89,7 @@ function NewContactPopup(props) {
 
         // @NOTE: When the pathname is /contacts, assume that updateContacts is an object
         if (url.pathname == '/contacts') {
-          refreshContacts([ toUpdateContactTypes ], currentPage, itemCount, searchQuery)
+          refreshContacts([toUpdateContactTypes], currentPage, itemCount, searchQuery)
             .then(res => {
               const clonedContacts = structuredClone(contacts)
               const { data } = res
@@ -88,7 +97,7 @@ function NewContactPopup(props) {
               setContacts(clonedContacts)
             })
         } else if (url.pathname == '/') {
-          refreshContacts([ 'customers', 'staffs', 'dealers' ], 0, 8)
+          refreshContacts(['customers', 'staffs', 'dealers'], 0, 8)
             .then(res => {
               const { data } = res
               setContacts(Object.values(data).flat())
@@ -98,7 +107,7 @@ function NewContactPopup(props) {
         if (updateExistingContact) updateExistingContact(data)
       })
       .catch()
-      
+
 
     closePopup.current.click()
     onDiscard()
@@ -118,7 +127,7 @@ function NewContactPopup(props) {
     if (props.existingContact) {
       setContact(structuredClone(props.existingContact))
     }
-  }, [ props.existingContact ])
+  }, [props.existingContact])
 
   return (
     <div className='modal fade' id='addContact' tabIndex='-1' aria-labelledby='addContactModal' data-bs-backdrop='static' data-bs-keyboard='false'>
@@ -168,8 +177,8 @@ function NewContactPopup(props) {
                   </div>
                   <div className='col'>
                     <div className='form-floating'>
-                      <input 
-                        type='number' 
+                      <input
+                        type='number'
                         name='price_level'
                         min={1} max={100}
                         value={contact?.price_level.toLocaleString()}
@@ -189,7 +198,7 @@ function NewContactPopup(props) {
                         <input className='form-check-input' value={'personal'} type='radio' name='info_type' id='personalRadioButton' defaultChecked={contact?.info_type === 'personal'} />
                         <label className='form-check-label' htmlFor='personalRadioButton'>
                           Personal
-                        </label>  
+                        </label>
                       </div>
                     </div>
                     <div className='col'>
@@ -350,8 +359,26 @@ function NewContactPopup(props) {
 
                 <div className='mb-2'>
                   <div className='form-floating'>
-                    <input name='approved_by' className='form-control' id='remarksInput' />
+                    <input 
+                      name='approved_by' 
+                      className='form-control' 
+                      id='remarksInput' 
+                      list='staffsOptions' 
+                      defaultValue={contact?.approved_by ? `${contact?.approved_by?.full_name} (${contact?.approved_by?.id})` : ''} />
                     <label htmlFor='remarksInput'>Approved By</label>
+                    <datalist id='staffsOptions'>
+                      {
+                        Object.values(staticStaffs).map((staff, i) => {
+                          const staffName = `${staff.full_name} (${staff.id})`
+
+                          return (
+                            <option key={i} value={staffName}>
+                              {staffName}
+                            </option>
+                          )
+                        })
+                      }
+                    </datalist>
                   </div>
                 </div>
 

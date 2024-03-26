@@ -26,19 +26,21 @@ function OrderSummaryItem(props) {
   const [sales, setSales] = props.salesState
   const [recalculate, setRecalculate] = props.recalculator
 
-  const selection = sales.selections[productData.id] ?? {}
+  const productId = productData.id
+  const selection = sales.selections[productId] ?? {}
   const selectedCustomer = props.selectedCustomer
   const originalSalesState = props.originalState
   const persistPriceLevel = props.persistPriceLevel ?? false
   const selectedCustomerPriceLevel = selectedCustomer?.price_level
+  
 
   // @NOTE: Instead of using the unit cost of a product, we'll revert to the price level 1.
   const itemPriceLevels = [...productData.itemPriceLevels].sort((a, b) => a.priceLevel.level_name > b.priceLevel.level_name)
   const selectedPriceLevel = itemPriceLevels[selectedCustomerPriceLevel - 1]
 
   const checkValue = () => {
-    if (selection?.quantity === 0) {
-      deselectProductFromSelection(productData.id, originalSalesState, props.salesState)
+    if (selection?.quantity == 0) {
+      deselectProductFromSelection(productId, originalSalesState, props.salesState)
       setRecalculate(!recalculate)
       return 0
     } else if (productData.item_quantity - selection?.quantity < 0) {
@@ -89,7 +91,12 @@ function OrderSummaryItem(props) {
     selection.cost = selectionPrice
     selection.price = selection.quantity * selectionPrice
 
-    clone.selections[productData.id] = selection
+    // Operations that are only executed when the sales is already in the database.
+    if (sales.id) {
+      selection.added_quantity = selection.quantity - originalSalesState.selections[productId].quantity
+    }
+
+    clone.selections[productId] = selection
 
     setSales(clone)
     setRecalculate(!recalculate)
@@ -125,7 +132,7 @@ function OrderSummaryItem(props) {
               </li>
               <li>
                 <p className='text-secondary mb-1' style={{ fontSize: '0.8rem' }}>
-                  {productData.code} (Stock: {productData.item_quantity})
+                  {productData.code} (Stock: {productData.item_quantity-selection.quantity})
                 </p>
               </li>
               <li className='d-flex gap-2 align-items-center'>

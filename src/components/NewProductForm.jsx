@@ -114,7 +114,7 @@ function NewProductForm(props) {
           <div className='form-floating'>
             <input name='dealer_id' className='form-control' list='dealersOption' id='dealerInput' autoComplete='off' required />
             <label htmlFor='dealerInput'>*Dealer</label>
-            <datalist id="dealersOption">
+            <datalist id='dealersOption'>
               {
                 staticDealers.map((dealer, i) => {
                   const dealerName = getDealerName(dealer)

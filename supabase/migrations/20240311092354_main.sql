@@ -83,7 +83,8 @@ CREATE TABLE IF NOT EXISTS public.items (
   code TEXT NOT NULL UNIQUE,
   barcode TEXT NULL,
   unit CHAR(3) NOT NULL,
-  is_variant BOOLEAN NOT NULL DEFAULT false
+  is_variant BOOLEAN NOT NULL DEFAULT false,
+  date_added TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 --
@@ -112,7 +113,7 @@ CREATE TABLE IF NOT EXISTS public.sales (
   staff_id INT NULL REFERENCES public.contacts(id) ON DELETE SET NULL,
   customer_id INT NULL REFERENCES public.contacts(id) ON DELETE SET NULL,
   invoice_type_id INT NULL REFERENCES public.invoice_types(id) ON DELETE SET NULL,
-  invoice_no BIGINT NOT NULL DEFAULT 0,
+  invoice_no BIGINT NOT NULL UNIQUE,
   sales_date TIMESTAMPTZ NOT NULL DEFAULT now(),
   sub_total NUMERIC NOT NULL DEFAULT 0,
   total_due NUMERIC NOT NULL DEFAULT 0,
@@ -135,5 +136,7 @@ CREATE TABLE IF NOT EXISTS public.selections (
   quantity INT NOT NULL DEFAULT 1,
   cost NUMERIC NOT NULL DEFAULT 0,
   price NUMERIC NOT NULL DEFAULT 0,
-  override_price NUMERIC NOT NULL DEFAULT 0
+  override_price NUMERIC NOT NULL DEFAULT 0,
+  added_quantity NUMERIC NOT NULL DEFAULT 0,
+  deducted_quantity NUMERIC NOT NULL DEFAULT 0,
 );
