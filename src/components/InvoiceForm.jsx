@@ -256,7 +256,7 @@ function InvoiceForm(props) {
               </div>
             </section>
             :
-            <section className='d-flex gap-3 py-3 rounded border shadow-sm mb-2 bg-white'>
+            <section className='d-flex gap-3 py-3 rounded border shadow-sm mb-2'>
               <picture>
                 <img src={'https://placehold.co/64?text=Customer'} className='rounded-circle' alt={'Customer\'s profile picture'} />
               </picture>
@@ -291,7 +291,7 @@ function InvoiceForm(props) {
             </section>
         }
 
-        <div className='shadow-sm rounded py-3 mb-3 border bg-white'>
+        <div className='shadow-sm rounded py-3 mb-3 border'>
           <div className='mb-4'>
             <div className='d-flex mb-1 justify-content-between'>
               <div>

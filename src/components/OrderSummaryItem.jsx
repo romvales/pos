@@ -128,7 +128,7 @@ function OrderSummaryItem(props) {
           <div className='flex-grow-1 px-2'>
             <ul className='list-unstyled'>
               <li>
-                <h5 style={{ fontSize: '0.9rem' }} className='fw-semibold mb-0'>{productData.item_name}</h5>
+                <h5 style={{ fontSize: '0.9rem' }} className='fw-normal mb-0'>{productData.item_name}</h5>
               </li>
               <li>
                 <p className='text-secondary mb-1' style={{ fontSize: '0.8rem' }}>

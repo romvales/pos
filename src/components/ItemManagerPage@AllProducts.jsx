@@ -44,7 +44,7 @@ function AllProducts(props) {
     <div className='container'>
       <nav className='mb-3 row'>
         <form className='col'>
-          <input className='form-control' placeholder='Search for a product...' onChange={onChange} />
+          <input className='form-control' placeholder='Search for goods...' onChange={onChange} />
         </form>
         <div className='col-auto'>
           <Paginator totalCount={productsCount} defaultItemCount={12} />
@@ -84,7 +84,7 @@ function AllProducts(props) {
                   </div>
                   <div className='p-3 flex-grow-1'>
                     <ProductLink>
-                      <h3 title={product.item_name} className='fs-6 fw-semibold text-primary'>
+                      <h3 title={product.item_name} className='fs-6 fw-normal text-primary'>
                         {product.item_name}
                       </h3>
                     </ProductLink>

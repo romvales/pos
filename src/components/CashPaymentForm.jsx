@@ -19,7 +19,7 @@ function CashPaymentForm(props) {
   }
 
   return (
-    <section className='d-flex gap-3 py-3 rounded border shadow-sm mb-3 bg-white'>
+    <section className='d-flex gap-3 py-3 rounded border shadow-sm mb-3'>
       <div className='flex-grow-1'>
         <ul className='list-unstyled mb-2'>
           <li>

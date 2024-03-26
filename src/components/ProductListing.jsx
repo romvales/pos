@@ -87,7 +87,7 @@ function ProductListing(props) {
         <form className='d-flex col'>
           <input 
             className='form-control' 
-            placeholder='Search for a product...' 
+            placeholder='Search for goods...' 
             onChange={onChange} />
         </form>
         <div className='col-auto'>
@@ -130,25 +130,32 @@ function ProductListing(props) {
                   }} 
                   onClick={() => onClickAddItemToOrderSummary(product)}>
                   <div className={`border ${productHighlighted} shadow-sm h-100 w-100`} style={{ borderRadius: '0.45rem' }}>
-                    <picture>
+                    <picture style={{ filter: isAvailable ? 'blur(2px)' : '' }}>
                       <img style={{ height: '100px', filter: isAvailable ? 'grayscale(100%)' : '' }} className='img-fluid rounded-top border-bottom w-100 object-fit-contain' src={itemImageUrl} alt='' />
                     </picture>
-                    <div className='px-3 py-3'>
-                      <h3 title={product.item_name} className='p-0 m-0 mb-2' style={{ fontWeight: 600, fontSize: '1.05rem' }}>
+                    <div className='p-3 d-grid align-items-end'>
+                      <h3 className='p-0 m-0 mb-2' style={{ fontWeight: 300, fontSize: '0.85rem' }}>
                         <span className='text-opacity-80'>{CurrencyFormatter.format(defaultPriceLevel.priceLevel.price)}</span> <span style={{ fontSize: '0.9rem' }} className='text-secondary fw-normal'>({CurrencyFormatter.format(product.item_cost)})</span>
                       </h3>
-                      <h3 title={product.item_name} style={{ fontSize: '0.95rem' }} className={`p-0 m-0 mb-1 ${ isAvailable ? 'text-secondary' : '' } fw-normal`}>
+                      <h3 title={product.item_name} style={{ fontSize: '0.85rem' }} className={`p-0 pb-1 m-0 ${ isAvailable ? 'text-secondary' : '' } fw-normal`}>
                         {product.item_name}
                       </h3>
+                      <p className='text-secondary mb-0 opacity-75 mb-1' style={{ fontSize: '0.75rem' }}>{product.code ?? 'Unknown'}</p>
+                      
                       <dl className='fw-normal m-0'>
-                        <dt className='d-none'>Product code</dt>
-                        <dd className='mb-0'>
-                          <p className='text-secondary mb-0 opacity-75' style={{ fontSize: '0.8rem' }}>{product.code ?? 'Unknown'}</p>
-                        </dd>
                         <dt className='d-none'>Remaining stock</dt>
                         <dd className='mb-0'>
                           <p className={`mb-0 text-secondary`} style={{ fontSize: '0.8rem' }}>
-                            <span className={`mr-1 ${product.item_quantity <= 0 ? 'text-danger' : ''}`}>Stock: {product.item_quantity}</span> (Sold: { product.item_sold })
+                            {
+                              isAvailable ?
+                                <>
+                                  <span className={`mr-1 text-danger`}>Unavailable</span>
+                                </>
+                                :
+                                <>
+                                  <span className='mr-1'>Stock: {product.item_quantity}</span> (Sold: { product.item_sold })
+                                </>
+                            }
                           </p>
                         </dd>
                       </dl>

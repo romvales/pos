@@ -54,7 +54,7 @@ function ItemManagerPage(props) {
                     type='button'
                     className={`nav-link ${activeTabView == 'all' ? 'active' : ''}`}
                     aria-current={activeTabView == 'all' ? 'page' : false}
-                    onClick={() => setActiveTabView('all')}>All Products</a>
+                    onClick={() => setActiveTabView('all')}>All Goods</a>
                 </li>
               </ul>
             </nav>
