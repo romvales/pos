@@ -7,7 +7,9 @@ import {
   ItemManagerPageDataLoader,
   SalesManagerPageDataLoader,
   ItemManagerProductInfoPageDataLoader,
-  ContactInfoManagerPageDataLoader
+  ContactInfoManagerPageDataLoader,
+  SalesManagerInvoiceInfoPageDataLoader,
+  AccountingPageDataLoader
 } from './loaders'
 
 export { router as PageRouter }
@@ -22,6 +24,11 @@ const router = createBrowserRouter([
     path: '/sales', 
     lazy: () => import('./SalesManagerPage').then(val => ({ Component: val.SalesManagerPage })),
     loader: SalesManagerPageDataLoader,
+  },
+  {
+    path: '/sales/i/:invoice_no',
+    lazy: () => import('./SalesManagerInvoiceInfoPage').then(val => ({ Component: val.SalesManagerInvoiceInfoPage })),
+    loader: SalesManagerInvoiceInfoPageDataLoader,
   },
   {
     path: '/contacts', 
@@ -46,5 +53,10 @@ const router = createBrowserRouter([
   {
     path: '/settings',
     lazy: () => import('./SettingsPage').then(val => ({ Component: val.SettingsPage })),
-  }
-])
+  },
+  {
+    path: '/accounting',
+    lazy: () => import('./AccountingPage').then(val => ({ Component: val.AccountingPage })),
+    loader: AccountingPageDataLoader,
+  },
+])  

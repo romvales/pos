@@ -1,5 +1,9 @@
 import { DefaultClient } from '../supabase'
 
+export async function AccountingPageDataLoader({}) {
+  return {}
+}
+
 // @DATALOADER: staticProducts, staticCustomers, staticLocations, staticInvoiceTypes
 export async function SalesRegisterPageDataLoader({ params, pageNumber = 0, itemCount = 12, searchQuery }) {
   return (await DefaultClient.functions.invoke('despos_service', {
@@ -27,6 +31,10 @@ export async function SalesManagerPageDataLoader({ pageNumber = 0, itemCount = 1
       },
     }
   })).data
+}
+
+export async function SalesManagerInvoiceInfoPageDataLoader({}) {
+  return {}
 }
 
 export async function ItemManagerProductInfoPageDataLoader({ params }) {

@@ -1,10 +1,9 @@
-import { useContext, useState } from 'react'
+import { useState } from 'react'
 import { DefaultLayout } from '../layouts/DefaultLayout'
 
 import { useLoaderData } from 'react-router-dom'
 import { ProductListing } from '../components/ProductListing'
 import { InvoiceForm, defaultSale } from '../components/InvoiceForm'
-import { getProductsFromDatabase } from '../actions'
 
 export {
   SalesRegisterPage,

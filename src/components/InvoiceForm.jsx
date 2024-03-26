@@ -229,8 +229,8 @@ function InvoiceForm(props) {
                     <h4 className='fs-6 fw-bold mb-0'>{getFullName(selectedCustomer)}</h4>
                   </li>
                   <li className='d-flex gap-1'>
-                    <span style={{ fontSize: '0.8rem' }} className='text-secondary'>{selectedCustomer.id}</span>
-                    <span style={{ fontSize: '0.8rem' }} className='text-secondary'>
+                    <span style={{ fontSize: '0.75rem' }} className='text-secondary'>{selectedCustomer.id}</span>
+                    <span style={{ fontSize: '0.75rem' }} className='text-secondary'>
                       (Price Level: {selectedCustomer.price_level})
                     </span>
                   </li>
