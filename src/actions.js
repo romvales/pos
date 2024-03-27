@@ -46,7 +46,7 @@ export {
   createPublicUrlForPath,
 }
 
-const _performingStaffData = JSON.parse(localStorage._performingStaffData)
+const _performingStaffData = JSON.parse(localStorage._performingStaffData ?? '{}')
 
 const getFullName = (contact) => {
   return [contact.first_name, contact.last_name].join(' ').replace(/\s\s+/g, ' ')
