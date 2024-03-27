@@ -33,8 +33,19 @@ export async function SalesManagerPageDataLoader({ pageNumber = 0, itemCount = 1
   })).data
 }
 
-export async function SalesManagerInvoiceInfoPageDataLoader({}) {
-  return {}
+export async function SalesManagerInvoiceInfoPageDataLoader({ params }) {
+  const { invoice_no_id } = params
+  const [invoiceId, id] = invoice_no_id?.split('.')
+
+  return (await DefaultClient.functions.invoke('despos_service', {
+    body: {
+      funcName: 'SalesManagerInvoiceInfoPageDataLoader',
+      parameters: {
+        id,
+        invoiceId,
+      },
+    },
+  })).data
 }
 
 export async function ItemManagerProductInfoPageDataLoader({ params }) {

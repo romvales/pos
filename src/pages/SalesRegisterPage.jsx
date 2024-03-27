@@ -12,7 +12,7 @@ export {
 function SalesRegisterPage(props) {
   const { staticProducts } = useLoaderData()
   const [products] = useState(staticProducts)
-  const [sales, setSales] = useState(structuredClone(defaultSale))
+  const [sales, setSales] = useState(structuredClone(defaultSale()))
   const [recalculate, setRecalculate] = useState()
   const [refreshProducts, setRefreshProducts] = useState()
 

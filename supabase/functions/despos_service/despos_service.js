@@ -7,13 +7,15 @@ export {
   SalesManagerPageDataLoader,
   SalesRegisterPageDataLoader,
   SettingsPageDataLoader,
-  
+  AccountingPageDataLoader,
+  SalesManagerInvoiceInfoPageDataLoader,
+
   saveLocationToDatabase,
   saveContactToDatabase,
   saveProductCategoryToDatabase,
   saveProductToDatabase,
   saveSalesToDatabase,
- 
+
   getInvoiceTypesFromDatabase,
   getProductByBarcodeFromDatabase,
   getProductByIdAndProductNameFromDatabase,
@@ -24,6 +26,7 @@ export {
   getContactsFromDatabase,
   getSalesFromDatabase,
   getSalesItemSelectionsFromDatabase,
+  getSalesByInvoiceAndIdFromDatabase,
   getCustomers,
   getStaffs,
   getDealers,
@@ -103,7 +106,7 @@ async function ItemManagerPageDataLoader(DefaultClient, parameters) {
     .then(res => {
       const { data } = res
       staticCategories.push(...data)
-    })  
+    })
     .catch()
 
   await getProductsFromDatabase(DefaultClient, parameters)
@@ -243,8 +246,22 @@ async function SalesRegisterPageDataLoader(DefaultClient, parameters) {
   }
 }
 
-function SettingsPageDataLoader() {
-  
+function SettingsPageDataLoader(DefaultClient, parameters) {
+  return { data: {} }
+}
+
+function AccountingPageDataLoader(DefaultClient, parameters) {
+  return { data: {} }
+}
+
+async function SalesManagerInvoiceInfoPageDataLoader(DefaultClient, parameters) {
+  const salesData = (await getSalesByInvoiceAndIdFromDatabase(DefaultClient, parameters)).data
+
+  return {
+    data: {
+      salesData,
+    },
+  }
 }
 
 function getLocationsFromDatabase(DefaultClient) {
@@ -263,30 +280,30 @@ function getContactsFromDatabase(DefaultClient, parameters) {
   }
 
   if (searchQuery && searchQuery.length) {
-    query = query.textSearch('full_name', searchQuery)
+    query = query.or(`full_name.like.%${searchQuery}%`)
   }
 
   if (!dontPaginateContacts)
     query = query
-      .range(pageNumber*(itemCount-1)+(pageNumber > 0 ? 1 : 0), itemCount*(pageNumber+1)-1)
+      .range(pageNumber * (itemCount - 1) + (pageNumber > 0 ? 1 : 0), itemCount * (pageNumber + 1) - 1)
 
   query = query.order('date_added', { ascending: false })
 
   return query.then(res => {
-      res.data = res.data?.map(cleanContactInfo)
-      return res
-    })
+    res.data = res.data?.map(cleanContactInfo)
+    return res
+  })
 }
 
 async function getContactsCountFromDatabase(DefaultClient, parameters) {
   const { contactType } = parameters
-  
+
   if (!contactType) {
     return {
       data: (await DefaultClient.from('contacts').select('id', { count: 'exact', head: true })).count ?? 0
     }
   }
-  
+
   return {
     data: (await DefaultClient.from('contacts').select('id', { count: 'exact', head: true }).match({ contact_type: contactType })).count ?? 0
   }
@@ -315,17 +332,21 @@ function getProductCategoriesFromDatabase(DefaultClient) {
 }
 
 function getSalesFromDatabase(DefaultClient, parameters) {
-  const { customSelect, pageNumber, itemCount, searchQuery } = parameters
+  const { customSelect, pageNumber, itemCount, searchQuery, invoiceId, id } = parameters
 
   let query = DefaultClient.from('sales')
     .select(customSelect ?? '*')
 
+  if (invoiceId && id) {
+    return query.match({ id, invoice_no: invoiceId }).single()
+  }
+
   if (searchQuery && searchQuery.length) {
-    
+
   }
 
   query = query
-    .range(pageNumber*(itemCount-1)+(pageNumber > 0 ? 1 : 0), itemCount*(pageNumber+1)-1)
+    .range(pageNumber * (itemCount - 1) + (pageNumber > 0 ? 1 : 0), itemCount * (pageNumber + 1) - 1)
     .order('sales_date', { ascending: false })
 
   return query
@@ -339,9 +360,38 @@ async function getSalesCountFromDatabase(DefaultClient) {
 
 function getSalesItemSelectionsFromDatabase(DefaultClient, parameters) {
   const { id } = parameters
-  
+
   return DefaultClient.from('selections').select().match({
     sales_id: id,
+  })
+}
+
+function getSalesByInvoiceAndIdFromDatabase(DefaultClient, parameters) {
+  return getSalesFromDatabase(DefaultClient, {
+    ...parameters,
+    customeSelect: `
+      *,
+      customer:customer_id (*),
+      selections (
+        *,
+        product:item_id (
+          *,
+          dealer:dealer_id(
+            *
+          ),
+          category:item_type_id(
+            *
+          ),
+          itemPriceLevels:items_price_levels(
+            price_level_id, 
+            priceLevel:price_level_id(
+              level_name,
+              price
+            )
+          )
+        )
+      )
+    `
   })
 }
 
@@ -351,7 +401,7 @@ function getInvoiceTypesFromDatabase(DefaultClient) {
 
 function deleteLocation(DefaultClient, parameters) {
   const { id } = parameters
-  
+
   return DefaultClient.from('locations')
     .delete({ count: 1 })
     .eq('id', id)
@@ -416,7 +466,7 @@ function deleteProduct(DefaultClient, parameters) {
 
 function deleteSales(DefaultClient, parameters) {
   const { id } = parameters
-  
+
   return DefaultClient.from('sales')
     .delete({ count: 1 })
     .eq('id', id)
@@ -490,7 +540,7 @@ function saveSalesToDatabase(DefaultClient, parameters) {
           delete product.default_item_sold
 
           toPerform.push(
-            saveProductToDatabase(DefaultClient,{ productData: product }),
+            saveProductToDatabase(DefaultClient, { productData: product }),
             deleteProductItemSelectionByIdFromDatabase(DefaultClient, { id: selection.id })
           )
         }
@@ -509,7 +559,7 @@ function saveSalesToDatabase(DefaultClient, parameters) {
           if (savedSales.sales_status == 'paid') {
             product.item_sold += clonedSales.id ? toSave.added_quantity : toSave.quantity
             product.item_quantity -= clonedSales.id ? toSave.added_quantity : toSave.quantity
-            
+
             if ((toSave.deducted_quantity -= toSave.added_quantity) < 0) {
               toSave.deducted_quantity = 0
             }
@@ -651,8 +701,8 @@ function getProductsFromDatabase(DefaultClient, parameters) {
   if (searchQuery && searchQuery.length) {
     query = query.or(`item_name.like.%${searchQuery}%, code.like.%${searchQuery}%, barcode.eq.${searchQuery}`)
   }
-    
-  query = query.range(pageNumber*(itemCount-1)+(pageNumber > 0 ? 1 : 0), itemCount*(pageNumber+1)-1)
+
+  query = query.range(pageNumber * (itemCount - 1) + (pageNumber > 0 ? 1 : 0), itemCount * (pageNumber + 1) - 1)
     .order('date_added', { ascending: false })
 
   return query

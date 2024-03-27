@@ -7,7 +7,7 @@ import { getContactsFromDatabase } from './actions'
 
 export { App }
 
-export const RootContext = createContext()
+export const RootContext = createContext({})
 
 function App() {
   const [isVisible, setVisiblity] = useState(true)

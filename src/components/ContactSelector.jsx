@@ -18,7 +18,7 @@ function ContactSelector(props) {
     getContactsFromDatabase(null, 0, 12, searchQuery)
       .then(res => {
         const { data } = res
-        setContacts(data)
+        setContacts(data ?? [])
       })
   }, [ searchQuery ])
 

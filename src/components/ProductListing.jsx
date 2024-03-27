@@ -110,7 +110,7 @@ function ProductListing(props) {
               }
 
               // Puts a border to a selected product in the product list
-              const productHighlighted = sales.selections[product.id] != null ? 'productSelected' : ''
+              const productHighlighted = sales.selections[product.id] != null ? 'productSelected shadow' : ''
 
               const defaultPriceLevel = itemPriceLevels.at(0) ?? {
                 priceLevel: {
@@ -129,7 +129,7 @@ function ProductListing(props) {
                     cursor: isAvailable ? 'not-allowed' : 'pointer',
                   }} 
                   onClick={() => onClickAddItemToOrderSummary(product)}>
-                  <div className={`border ${productHighlighted} shadow-sm h-100 w-100`} style={{ borderRadius: '0.45rem' }}>
+                  <div className={`border ${productHighlighted} h-100 w-100`} style={{ borderRadius: '0.45rem' }}>
                     <picture style={{ filter: isAvailable ? 'blur(2px)' : '' }}>
                       <img style={{ height: '100px', filter: isAvailable ? 'grayscale(100%)' : '' }} className='img-fluid rounded-top border-bottom w-100 object-fit-contain' src={itemImageUrl} alt='' />
                     </picture>

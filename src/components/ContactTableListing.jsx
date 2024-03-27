@@ -6,12 +6,13 @@ import { Paginator } from './Paginator'
 import Moment from 'moment-timezone'
 import { useMemo, useState } from 'react'
 import { TrashIcon } from '@heroicons/react/outline'
+import { NewContactPopup } from './NewContactPopup'
 
 export { ContactTableListing }
 
 function ContactTableListing(props) {
   const locations = props.locations ?? []
-  const contacts = props.contacts
+  const [contacts, setContacts] = props.contactsState
   const type = props.type
   const totalContacts = props.totalContacts
   const selectedContacts = contacts[type]
@@ -63,6 +64,7 @@ function ContactTableListing(props) {
     setCheckedContacts(clonedCheckedContacts)
   }
 
+  const defaultContactType = type.slice(0, type.length-1)
   const hasItems = useMemo(() => Object.values(checkedContacts).length, [checkedContacts])
 
   return (
@@ -71,7 +73,9 @@ function ContactTableListing(props) {
         <div className='toolbar-wrapper p-2'>
           <ul className='d-flex align-items-center list-unstyled p-0 m-0 gap-2'>
             <li className=''>
-              
+              <button class='btn btn-sm btn-outline-secondary text-capitalize' data-bs-toggle='modal' data-bs-target={`#addContact${type}`}>
+                Add {defaultContactType}
+              </button>
             </li>
 
             <li className='flex-grow-1'></li>
@@ -112,7 +116,7 @@ function ContactTableListing(props) {
             <th className='text-secondary'>
               Store
             </th>
-            <th className="text-secondary">
+            <th className='text-secondary'>
               Date Added
             </th>
           </tr>
@@ -178,6 +182,16 @@ function ContactTableListing(props) {
           currentPageState={[currentPage, setCurrentPage]}
           itemCountState={[itemCount, setItemCount]} />
       </nav>
+
+      <NewContactPopup
+        id={`addContact${type}`}
+        title='Add Contact'
+        locations={locations}
+        defaultContactType={defaultContactType}
+        updateContacts={setContacts}
+        contactsState={[contacts, setContacts]}
+        currentPageState={[currentPage, setCurrentPage]}
+        itemCountState={[itemCount, setItemCount]}></NewContactPopup>
     </div>
   )
 }

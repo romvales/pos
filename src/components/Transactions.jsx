@@ -1,6 +1,6 @@
 
 import { RootContext } from '../App'
-import { PencilAltIcon, TrashIcon } from '@heroicons/react/outline'
+import { EyeIcon, PencilAltIcon, TrashIcon } from '@heroicons/react/outline'
 import { getFullName } from '../actions'
 import { Link } from 'react-router-dom'
 import { createRef, useMemo, useState } from 'react'
@@ -62,7 +62,9 @@ function Transactions(props) {
         <div className='toolbar-wrapper p-2'>
           <ul className='d-flex align-items-center list-unstyled p-0 m-0 gap-2'>
             <li className=''>
-              
+              <Link to={{ pathname: '/' }} class='btn btn-sm btn-outline-secondary text-capitalize'>
+                New Sales
+              </Link>
             </li>
 
             <li className='flex-grow-1'></li>
@@ -145,9 +147,17 @@ function Transactions(props) {
                   </td>
 
                   <td className='align-middle'>
-                    <span title={`Invoice#${sales.invoice_no}`} style={{ fontSize: '0.8rem', fontFamily: 'Consolas' }} className='text-secondary'>
-                      #{sales.invoice_no.toString().slice(0, 10)}...
-                    </span>
+                    <div className='d-flex flex-column align-items-start'>
+                      <span title={`Invoice#${sales.invoice_no}`} style={{ fontSize: '0.8rem', fontFamily: 'Consolas' }} className='text-secondary'>
+                        #{sales.invoice_no.toString().slice(0, 10)}...
+                      </span>
+                      <Link
+                        style={{ border: 0, fontSize: '0.7rem' }}
+                        className='btn p-0 text-primary d-flex gap-1 align-items-center'
+                        to={{ pathname: `/sales/i/${sales.invoice_no}.${sales.id}` }}>
+                        <EyeIcon width={10} /> View
+                      </Link>
+                    </div>
                   </td>
 
                   <td className='align-middle'>

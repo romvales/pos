@@ -9,13 +9,13 @@ export { NewContactPopup }
 const contactTypes = ['customer', 'staff', 'dealer']
 const civilStatuses = ['unknown', 'single', 'divorced', 'widow', 'married']
 
-const createEmptyContact = () => {
+const createEmptyContact = (contactType) => {
   const now = new Date()
 
   const dateOpen = `${now.getFullYear()}-${now.getMonth().toString().padStart(2, '0')}-${now.getDate()}`
 
   return {
-    contact_type: 'customer',
+    contact_type: contactType ?? 'customer',
     info_type: 'personal',
     first_name: '',
     middle_initial: '',
@@ -46,7 +46,7 @@ function NewContactPopup(props) {
   const isReadOnlyCustomerType = props.isReadOnlyCustomerType
   const locations = props.locations ?? []
   const [contacts, setContacts] = props.contactsState
-  const [contact, setContact] = useState(createEmptyContact())
+  const [contact, setContact] = useState(createEmptyContact(props.defaultContactType))
   const [searchQuery] = props.searchQueryState ?? useState('')
   const updateExistingContact = props.updateExistingContact
   const [currentPage] = props.currentPageState ?? rootContext.currentPageState
@@ -130,7 +130,7 @@ function NewContactPopup(props) {
   }, [props.existingContact])
 
   return (
-    <div className='modal fade' id='addContact' tabIndex='-1' aria-labelledby='addContactModal' data-bs-backdrop='static' data-bs-keyboard='false'>
+    <div className='modal fade' id={props.id ?? 'addContact'} tabIndex='-1' aria-labelledby='addContactModal' data-bs-backdrop='static' data-bs-keyboard='false'>
       <form ref={formRef} onSubmit={onSubmit}>
         <div className='modal-dialog'>
           <div className='modal-content'>
@@ -148,7 +148,12 @@ function NewContactPopup(props) {
                 </div>
 
                 <div className='form-floating mb-2'>
-                  <select id='contactType' className='form-select' name='contact_type' disabled={isReadOnlyCustomerType} defaultValue={contact?.contact_type}>
+                  <select 
+                    id='contactType' 
+                    className='form-select' 
+                    name='contact_type' 
+                    disabled={isReadOnlyCustomerType || props.defaultContactType} 
+                    defaultValue={props.defaultContactType ?? contact?.contact_type}>
                     {
                       contactTypes.map(type => (
                         <option value={type} key={type}>

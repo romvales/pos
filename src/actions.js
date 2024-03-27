@@ -20,6 +20,7 @@ export {
   getContactsFromDatabase,
   getSalesFromDatabase,
   getSalesItemSelectionsFromDatabase,
+  getSalesByInvoiceAndIdFromDatabase,
   getCustomers,
   getStaffs,
   getDealers,
@@ -44,6 +45,8 @@ export {
   uploadFileToServer,
   createPublicUrlForPath,
 }
+
+const _performingStaffData = JSON.parse(localStorage._performingStaffData)
 
 const getFullName = (contact) => {
   return [contact.first_name, contact.last_name].join(' ').replace(/\s\s+/g, ' ')
@@ -143,6 +146,18 @@ async function getSalesItemSelectionsFromDatabase(salesData) {
       parameters: {
         id: salesData.id,
       }
+    },
+  })
+}
+
+async function getSalesByInvoiceAndIdFromDatabase(invoiceId, id) {
+  return DefaultClient.functions.invoke('despos_service', {
+    body: {
+      funcName: 'getSalesByInvoiceAndIdFromDatabase',
+      parameters: {
+        invoiceId,
+        id,
+      },
     },
   })
 }
@@ -258,6 +273,8 @@ async function saveLocationToDatabase(location) {
 }
 
 async function saveContactToDatabase(contactData) {
+  if (!contactData.staff_id && _performingStaffData?.id) contactData.staff_id = _performingStaffData.id
+
   return DefaultClient.functions.invoke('despos_service', {
     body: {
       funcName: 'saveContactToDatabase',
@@ -269,6 +286,8 @@ async function saveContactToDatabase(contactData) {
 }
 
 async function saveSalesToDatabase(sales) {
+  if (!sales.staff_id && _performingStaffData?.id) sales.staff_id = _performingStaffData.id
+
   return DefaultClient.functions.invoke('despos_service', {
     body: {
       funcName: 'saveSalesToDatabase',
@@ -280,6 +299,8 @@ async function saveSalesToDatabase(sales) {
 }
 
 async function saveProductToDatabase(productData) {
+  if (!productData.staff_id && _performingStaffData?.id) productData.staff_id = _performingStaffData.id
+
   return DefaultClient.functions.invoke('despos_service', {
     body: {
       funcName: 'saveProductToDatabase',

@@ -1,7 +1,7 @@
 
-import { SelectorIcon, XIcon, CashIcon, PencilAltIcon, BookmarkIcon, PlusCircleIcon } from '@heroicons/react/outline'
+import { SelectorIcon, XIcon, CashIcon, PencilAltIcon, BookmarkIcon, PlusCircleIcon, EyeIcon } from '@heroicons/react/outline'
 import { CashPaymentForm } from '../components/CashPaymentForm'
-import { useLoaderData } from 'react-router-dom'
+import { Link, useLoaderData } from 'react-router-dom'
 import { createRef, useContext, useEffect, useMemo, useState } from 'react'
 import { getFullName, saveSalesToDatabase } from '../actions'
 
@@ -20,7 +20,7 @@ const generateInvoiceNo = () => {
 }
 
 // Used for resetting the sales form state to default 
-export const defaultSale = {
+export const defaultSale = () => ({
   customer_id: '',
   sales_date: new Date(),
   sales_status: 'in-progress',
@@ -41,7 +41,7 @@ export const defaultSale = {
     toDelete: [],
   },
   length: 0,
-}
+})
 
 // Adds a product to the order summary items (used in OrderSummaryItem.jsx)
 export const addProductToSelection = (product, salesState) => {
@@ -73,7 +73,7 @@ export const deselectProductFromSelection = (id, originalState, salesState) => {
 
   // If already an exsiting sales in the database, add the deselected selection to the selections.toDelete array
   if (sales.id) {
-    
+
     if (!clone.selections.toDelete) clone.selections.toDelete = []
 
     clone.selections[id].deducted_quantity = originalState.selections[id].quantity
@@ -88,14 +88,12 @@ export const deselectProductFromSelection = (id, originalState, salesState) => {
 
 function InvoiceForm(props) {
   const { staticCustomers, staticLocations } = useLoaderData()
-
+  const { originalState, persistPriceLevel } = props
   const rootContext = useContext(RootContext)
   const [contacts, setContacts] = useState(staticCustomers)
   const [recalculate, setRecalculate] = props.recalculator
   const [selectedCustomer, setSelectedCustomer] = props.selectedCustomerState ?? useState()
   const [sales, setSales] = props.salesState ?? useState(defaultSale())
-  const persistPriceLevel = props.persistPriceLevel
-  const originalState = props.originalState
   const actionType = props.actionType ?? ''
   const formRef = createRef()
 
@@ -146,7 +144,7 @@ function InvoiceForm(props) {
 
   // Used for clearing the form after 
   const onDiscard = () => {
-    const clonedDefaultSale = structuredClone(defaultSale)
+    const clonedDefaultSale = structuredClone(defaultSale())
 
     // @FEATURE: Regenerates a new invoice number for the next order
     clonedDefaultSale.invoice_no = generateInvoiceNo()
@@ -158,7 +156,7 @@ function InvoiceForm(props) {
 
   const onClickRefund = () => {
     const clonedSales = structuredClone(sales)
-    
+
     clonedSales.invoice_type_id = 3
     clonedSales.sales_status = 'refunded'
 
@@ -191,7 +189,7 @@ function InvoiceForm(props) {
     }
 
     clone.total_due = (clone.sub_total + clone.tax_amount) - clone.discount_amount
-    clone.change_due = clone.amount_paid-clone.total_due
+    clone.change_due = clone.amount_paid - clone.total_due
     setSales(clone)
   }
 
@@ -300,6 +298,20 @@ function InvoiceForm(props) {
               </div>
               <nav className=''>
                 <ul className='d-flex gap-2 list-unstyled p-0'>
+                  {
+                    sales.id ?
+                      <li>
+                        <Link
+                          style={{ border: 0 }}
+                          className='btn d-flex p-0 text-primary flex-column align-items-center'
+                          to={{ pathname: `/sales/i/${sales.invoice_no}.${sales.id}` }}>
+                          <EyeIcon width={18} />
+                          <span style={{ fontSize: '0.6rem' }}>View</span>
+                        </Link>
+                      </li>
+                      :
+                      <></>
+                  }
                   {
                     isValid ?
                       <li className=''>
@@ -446,7 +458,7 @@ function InvoiceForm(props) {
                 type='submit'
                 className='btn btn-primary btn-pill p-3 d-flex justify-content-center align-items-center gap-1'
                 disabled={!isValid}>
-                <span className='fs-5'>Finish Transaction</span>
+                <span className='fs-6'>Create Transaction</span>
               </button>
             </div>
             :
@@ -455,14 +467,14 @@ function InvoiceForm(props) {
                 type='submit'
                 className='flex-grow-1 btn btn-primary btn-pill p-3 d-flex justify-content-center align-items-center gap-1'
                 disabled={!isValid || !sales.id}>
-                <span className='fs-5'>Save Transaction</span>
+                <span className='fs-6'>Save Transaction</span>
               </button>
               <button
                 type='button'
                 className='flex-grow-1 btn btn-outline-secondary btn-pill p-3 d-flex justify-content-center align-items-center gap-1'
                 disabled={!isValid || !sales.id}
                 onClick={onClickRefund}>
-                <span className='fs-5'>Refund</span>
+                <span className='fs-6'>Refund</span>
               </button>
             </div>
         }

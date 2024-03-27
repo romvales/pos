@@ -1,5 +1,5 @@
 import { Link, useLoaderData } from 'react-router-dom'
-import { createRef, useEffect } from 'react'
+import { createRef, useEffect, useMemo } from 'react'
 import { deleteSales, deleteSalesSelections, getSalesCountFromDatabase } from '../actions'
 import { DefaultLayout } from '../layouts/DefaultLayout'
 import { useState } from 'react'
@@ -21,7 +21,7 @@ function SalesManagerPage(props) {
 
   const searchRef = createRef()
   const [collectionSales, setCollectionSales] = useState(staticSales)
-  const [selectedSales, setSelectedSales] = useState(structuredClone(defaultSale))
+  const [selectedSales, setSelectedSales] = useState(defaultSale())
   const [selectedCustomer, setSelectedCustomer] = useState()
   const [recalculate, setRecalculate] = useState()
 
@@ -34,7 +34,7 @@ function SalesManagerPage(props) {
         pageNumber: updatedValue ?? currentPage,
         itemCount: overrideItemCount ?? itemCount,
         searchQuery,
-        fetchOnlySales: true
+        fetchOnlySales: true,
       },
     )
       .then(({ staticSales }) => {
@@ -119,6 +119,10 @@ function SalesManagerPage(props) {
     cleanUpCollectionAndSetState(staticSales)
   }, [])
 
+  const originalState = useMemo(() => {
+    return structuredClone(collectionSales.find(sales => sales.invoice_no === selectedSales.invoice_no))
+  }, [ selectedSales ])
+
   // @PAGE_URL: /sales
   return (
     <DefaultLayout Breadcrumbs={Breadcrumbs}>
@@ -157,12 +161,11 @@ function SalesManagerPage(props) {
               persistPriceLevel={true}
               selectedCustomerState={[selectedCustomer, setSelectedCustomer]}
               salesState={[selectedSales, setSelectedSales]}
-              originalState={structuredClone(collectionSales.find(sales => sales.invoice_no === selectedSales.invoice_no))}
+              originalState={originalState}
               recalculator={[recalculate, setRecalculate]}
               onSubmitSuccess={onSubmitSuccess}
               onSaveSuccess={onSaveSuccess}
               actionType={'custom'} />
-
           </section>
         </div>
       </div>

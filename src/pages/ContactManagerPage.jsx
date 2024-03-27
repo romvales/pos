@@ -120,11 +120,6 @@ function ContactManagerPage(props) {
         <div className='row'>
           <div className='col'>
             <section className='d-flex gap-3 mb-4'>
-              <div>
-                <button className='btn btn-primary' data-bs-toggle='modal' data-bs-target='#addContact'>
-                  Add Contact
-                </button>
-              </div>
               <form className='d-flex flex-grow-1'>
                 <div className='flex-fill'>
                   <input
@@ -145,7 +140,7 @@ function ContactManagerPage(props) {
                   <ContactTableListing
                     type='customers'
                     locations={locations}
-                    contacts={contacts}
+                    contactsState={[contacts, setContacts]}
                     totalContacts={counts?.customersCount}
                     onPaginate={onPaginate}
                     onDeleteSelections={onDeleteSelections}></ContactTableListing>
@@ -155,7 +150,7 @@ function ContactManagerPage(props) {
                   <ContactTableListing
                     type='staffs'
                     locations={locations}
-                    contacts={contacts}
+                    contactsState={[contacts, setContacts]}
                     totalContacts={counts?.staffsContact}
                     onPaginate={onPaginate}
                     onDeleteSelections={onDeleteSelections}></ContactTableListing>
@@ -165,7 +160,7 @@ function ContactManagerPage(props) {
                   <ContactTableListing
                     type='dealers'
                     locations={locations}
-                    contacts={contacts}
+                    contactsState={[contacts, setContacts]}
                     totalContacts={counts?.dealersCount}
                     onPaginate={onPaginate}
                     onDeleteSelections={onDeleteSelections}></ContactTableListing>
@@ -180,7 +175,7 @@ function ContactManagerPage(props) {
               <div className='mb-2 flex-grow-1'>
                 <input
                   name='location_name'
-                  placeholder='Location'
+                  placeholder='Add new store'
                   className='form-control shadow-none'
                   id='locationInput'
                   required />
@@ -224,12 +219,6 @@ function ContactManagerPage(props) {
             </table>
           </div>
         </div>
-
-        <NewContactPopup
-          title='Add Contact'
-          locations={locations}
-          updateContacts={setContacts}
-          contactsState={[contacts, setContacts]}></NewContactPopup>
       </div>
     </DefaultLayout>
   )

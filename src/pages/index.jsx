@@ -26,7 +26,7 @@ const router = createBrowserRouter([
     loader: SalesManagerPageDataLoader,
   },
   {
-    path: '/sales/i/:invoice_no',
+    path: '/sales/i/:invoice_no_id',
     lazy: () => import('./SalesManagerInvoiceInfoPage').then(val => ({ Component: val.SalesManagerInvoiceInfoPage })),
     loader: SalesManagerInvoiceInfoPageDataLoader,
   },

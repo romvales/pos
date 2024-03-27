@@ -4,7 +4,7 @@ import {
   PlusIcon
 } from '@heroicons/react/outline'
 import { createPublicUrlForPath } from '../actions'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { deselectProductFromSelection } from './InvoiceForm'
 import { CurrencyFormatter } from '../locales/currencies'
 
@@ -32,7 +32,6 @@ function OrderSummaryItem(props) {
   const originalSalesState = props.originalState
   const persistPriceLevel = props.persistPriceLevel ?? false
   const selectedCustomerPriceLevel = selectedCustomer?.price_level
-  
 
   // @NOTE: Instead of using the unit cost of a product, we'll revert to the price level 1.
   const itemPriceLevels = [...productData.itemPriceLevels].sort((a, b) => a.priceLevel.level_name > b.priceLevel.level_name)

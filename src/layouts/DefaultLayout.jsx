@@ -2,9 +2,13 @@ import { Link } from 'react-router-dom'
 import { MenuAlt3Icon } from '@heroicons/react/outline'
 import { MediaDevice } from '../components/MediaDevice'
 import { RootContext } from '../App'
-import { useContext } from 'react'
+import { useContext, useMemo, useState } from 'react'
+import { getContactsFromDatabase, getFullName } from '../actions'
+import { capitalize } from 'lodash'
 
 export { DefaultLayout }
+
+const staffsData = (await getContactsFromDatabase('staff', null, null, '', true)).data
 
 function DefaultLayout(props) {
   const rootContext = useContext(RootContext)
@@ -13,16 +17,24 @@ function DefaultLayout(props) {
   const Breadcrumbs = props.Breadcrumbs
   const AsidedContent = props.AsidedContent
 
+  const [selectedStaff, setSelectedStaff] = useState(JSON.parse(localStorage.getItem('_performingStaffData')) ?? {})
   const [isVisible] = rootContext.loadingBarState
 
   const urlContains = (str) => {
     return new RegExp(str).test(url.pathname)
   }
 
+  const onSelectStaff = (staff) => {
+    localStorage.setItem('_performingStaffData', JSON.stringify(staff))
+    setSelectedStaff(staff)
+  }
+  
+  const placeholderUrl = useMemo(() => 'https://placehold.co/48?text=' + selectedStaff.first_name, [ selectedStaff ])
+
   return (
     <>
       {/* <MediaDevice></MediaDevice> */}
-      < header className='sticky-top d-sm-block d-lg-none'>
+      <header className='sticky-top d-sm-block d-lg-none'>
         <nav className='navbar navbar-expand-lg border-bottom bg-white'>
           <div className='container'>
             <Link className='navbar-brand' to={{ pathname: '/' }}>
@@ -38,9 +50,6 @@ function DefaultLayout(props) {
             <div className='collapse navbar-collapse justify-content-between' id='navbarNav'>
               <ul className='navbar-nav'>
                 <li className='nav-item active'>
-                  <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} to={{ pathname: '/accounting' }}>Accounting</Link>
-                </li>
-                <li className='nav-item active'>
                   <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} to={{ pathname: '/stocks' }}>Stocks</Link>
                 </li>
                 <li className='nav-item'>
@@ -51,6 +60,9 @@ function DefaultLayout(props) {
                 </li>
                 <li className='nav-item'>
                   <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} aria-current='page' to={{ pathname: '/sales' }}>Sales</Link>
+                </li>
+                <li className='nav-item active'>
+                  <Link className='nav-link text-secondary' style={{ fontSize: '0.9rem' }} to={{ pathname: '/accounting' }}>Accounting</Link>
                 </li>
               </ul>
             </div>
@@ -84,9 +96,6 @@ function DefaultLayout(props) {
                   </Link>
                 </li>
 
-                <li className={`mb-1 rounded nav-item ${urlContains('/accounting') ? 'bg-secondary bg-opacity-10' : ''}`}>
-                  <Link className={`p-3 nav-link h-100 ${urlContains('/accounting') ? 'text-secondary' : ''}`} to={{ pathname: '/accounting' }}>Accounting</Link>
-                </li>
                 <li className={`mb-1 rounded nav-item ${urlContains('/stocks') ? 'bg-secondary bg-opacity-10' : ''}`}>
                   <Link className={`p-3 nav-link h-100 ${urlContains('/stocks') ? 'text-secondary' : ''}`} to={{ pathname: '/stocks' }}>Stocks</Link>
                 </li>
@@ -99,8 +108,63 @@ function DefaultLayout(props) {
                 <li className={`mb-1 rounded nav-item ${urlContains('/settings') ? 'bg-secondary bg-opacity-10' : ''}`}>
                   <Link className={`p-3 nav-link h-100 ${urlContains('/settings') ? 'text-secondary' : ''}`} to={{ pathname: '/settings' }}>Settings</Link>
                 </li>
+                <li className={`mb-1 rounded nav-item ${urlContains('/accounting') ? 'bg-secondary bg-opacity-10' : ''}`}>
+                  <Link className={`p-3 nav-link h-100 ${urlContains('/accounting') ? 'text-secondary' : ''}`} to={{ pathname: '/accounting' }}>Accounting</Link>
+                </li>
               </ul>
             </nav>
+            <div className='dropup d-grid'>
+              <button
+                className='btn border'
+                type='button'
+                data-bs-toggle='dropdown'>
+                {
+                  selectedStaff?.id ?
+                    <div className='d-flex gap-2 py-2 px-2 w-100'>
+                      <picture>
+                        <img src={placeholderUrl} className='rounded-circle' alt={'Customer\'s profile picture'} />
+                      </picture>
+                      <div className='flex-grow-1 d-flex flex-column justify-content-center align-items-start'>
+                        <span style={{ fontSize: '0.8rem' }} className='text-secondary'>Performing action as...</span>
+                        <ul className='list-unstyled mb-0'>
+                          <li>
+                            <h4 className='fs-6 fw-bold mb-0'>{getFullName(selectedStaff)}</h4>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                    :
+                    <>
+                      <span>Performing action as</span>
+                    </>
+                }
+              </button>
+              <ul className='dropdown-menu w-100'>
+                {
+                  staffsData?.map(contact => {
+                    const placeholderUrl = 'https://placehold.co/48?text=' + contact.first_name
+
+                    return (
+                      <li className='dropdown-item d-flex gap-2 p-2 px-3 list-group-item' onClick={() => onSelectStaff(contact)}>
+                        <picture>
+                          <img src={placeholderUrl} className='rounded-circle' alt={'Customer\'s profile picture'} />
+                        </picture>
+                        <div className='flex-grow-1'>
+                          <ul className='list-unstyled mb-0'>
+                            <li>
+                              <h4 className='fs-6 fw-bold mb-0'>{getFullName(contact)}</h4>
+                            </li>
+                            <li className='d-flex gap-1'>
+                              <span style={{ fontSize: '0.8rem' }} className='text-secondary'>{contact.id} {capitalize(contact.contact_type)}</span>
+                            </li>
+                          </ul>
+                        </div>
+                      </li>
+                    )
+                  })
+                }
+              </ul>
+            </div>
           </div>
         </div>
 
